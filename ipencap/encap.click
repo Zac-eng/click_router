@@ -26,7 +26,7 @@ t[1] -> arpq0;
 t[2] -> arpq1;
 
 arpql -> outl;
-arpq0 -> out0
+arpq0 -> out0;
 arpq1 -> out1;
 
 ar :: ARPResponder(LAN_IP LAN_MAC,
