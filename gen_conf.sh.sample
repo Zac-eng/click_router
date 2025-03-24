@@ -1,0 +1,36 @@
+#! /bin/bash
+
+LAN_INTF=
+LAN_IP=
+LAN_MAC=
+LAN_SUBN=
+WAN0_INTF=
+WAN0_IP=
+WAN0_MAC=
+WAN0_SUBN=
+WAN0_TARGET=
+WAN1_INTF=
+WAN1_IP=
+WAN1_MAC=
+WAN1_SUBN=
+WAN1_TARGET=
+
+TARGET_FILE=bounding_router.click
+TEMPLATE_FILE=$TARGET_FILE.template
+
+# env | awk -F= '{print "s/${"$1"}/"$2"/g"}' | sed -f $TEMPLATE_FILE > $TARGET_FILE
+# env | sed -E 's/([\/&])/\\\1/g' | awk -F= '{print "s/${" $1 "}/" $2 "/g"}' | sed -f - $TEMPLATE_FILE >> $TARGET_FILE
+sed "s/LAN_INTF/$LAN_INTF/g" $TEMPLATE_FILE \
+  | sed "s/LAN_IP/$LAN_IP/g" \
+  | sed "s/LAN_MAC/$LAN_MAC/g" \
+  | sed "s/LAN_SUBN/$LAN_SUBN/g" \
+  | sed "s/WAN0_INTF/$WAN0_INTF/g" \
+  | sed "s/WAN0_IP/$WAN0_IP/g" \
+  | sed "s/WAN0_MAC/$WAN0_MAC/g" \
+  | sed "s/WAN0_SUBN/$WAN0_SUBN/g" \
+  | sed "s/WAN0_TARGET/$WAN0_TARGET/g" \
+  | sed "s/WAN1_INTF/$WAN1_INTF/g" \
+  | sed "s/WAN1_IP/$WAN1_IP/g" \
+  | sed "s/WAN1_MAC/$WAN1_MAC/g" \
+  | sed "s/WAN1_SUBN/$WAN1_SUBN/g" \
+  | sed "s/WAN1_TARGET/$WAN1_TARGET/g" > $TARGET_FILE
