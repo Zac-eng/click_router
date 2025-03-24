@@ -24,7 +24,7 @@ FromDevice(LAN_INTF) -> [0]cl;
 FromDevice(WAN0_INTF) -> [0]c0;
 FromDevice(WAN1_INTF) -> [0]c1;
 
-outl :: ToDevice(LAN_INTF);
+outl :: Queue(1024) -> ToDevice(LAN_INTF);
 out0 :: Queue(1024) -> ToDevice(WAN0_INTF);
 out1 :: Queue(1024) -> ToDevice(WAN1_INTF);
 
@@ -33,11 +33,8 @@ arpql1 :: ARPQuerier(LAN_IP, LAN_MAC);
 arpq0 :: ARPQuerier(WAN0_IP, WAN0_MAC);
 arpq1 :: ARPQuerier(WAN1_IP, WAN1_MAC);
 
-rrs :: RoundRobinSched();
-
-arpql0 -> Queue(1024) -> [0]rrs;
-arpql1 -> Queue(1024) -> [1]rrs;
-rrs -> outl;
+arpql0 -> outl;
+arpql1 -> outl;
 arpq0 -> out0;
 arpq1 -> out1;
 
@@ -51,7 +48,7 @@ arpr1 :: ARPResponder(WAN1_IP WAN1_MAC,
                     LAN_SUBN WAN1_MAC,
                     WAN0_SUBN WAN1_MAC);
 
-cl[0] -> arprl -> Queue(1024) -> [2]rrs;
+cl[0] -> arprl -> outl;
 c0[0] -> arpr0 -> out0;
 c1[0] -> arpr1 -> out1;
 
