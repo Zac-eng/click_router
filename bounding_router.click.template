@@ -24,15 +24,20 @@ FromDevice(LAN_INTF) -> [0]cl;
 FromDevice(WAN0_INTF) -> [0]c0;
 FromDevice(WAN1_INTF) -> [0]c1;
 
-outl :: Queue(1024) -> ToDevice(LAN_INTF);
+outl :: ToDevice(LAN_INTF);
 out0 :: Queue(1024) -> ToDevice(WAN0_INTF);
 out1 :: Queue(1024) -> ToDevice(WAN1_INTF);
 
-arpql :: ARPQuerier(LAN_IP, LAN_MAC);
+arpql0 :: ARPQuerier(LAN_IP, LAN_MAC);
+arpql1 :: ARPQuerier(LAN_IP, LAN_MAC);
 arpq0 :: ARPQuerier(WAN0_IP, WAN0_MAC);
 arpq1 :: ARPQuerier(WAN1_IP, WAN1_MAC);
 
-arpql -> outl;
+rrs :: RoundRobinSched();
+
+arpql0 -> Queue(1024) -> [0]rrs;
+arpql1 -> Queue(1024) -> [1]rrs;
+rrs -> outl;
 arpq0 -> out0;
 arpq1 -> out1;
 
@@ -46,19 +51,23 @@ arpr1 :: ARPResponder(WAN1_IP WAN1_MAC,
                     LAN_SUBN WAN1_MAC,
                     WAN0_SUBN WAN1_MAC);
 
-cl[0] -> arprl -> outl;
+cl[0] -> arprl -> Queue(1024) -> [2]rrs;
 c0[0] -> arpr0 -> out0;
 c1[0] -> arpr1 -> out1;
 
-cl[1] -> [1]arpql;
+t :: Tee(2);
+
+cl[1] -> t;
+t[0] -> [1]arpql0;
+t[1] -> [1]arpql1;
 c0[1] -> [1]arpq0;
 c1[1] -> [1]arpq1;
 
 hs :: HashSwitch(4, 2);
 
 cl[2] -> Strip(14) -> hs;
-c0[2] -> Strip(14) -> StripIPHeader() -> [0]arpql;
-c1[2] -> Strip(14) -> StripIPHeader() -> [0]arpql;
+c0[2] -> Strip(14) -> StripIPHeader() -> [0]arpql0;
+c1[2] -> Strip(14) -> StripIPHeader() -> [0]arpql1;
 
 hs[0] -> IPEncap(50, WAN0_IP, WAN0_TARGET) -> DecIPTTL() -> IPFragmenter(1500) -> [0]arpq0;
 hs[1] -> IPEncap(50, WAN1_IP, WAN1_TARGET) -> DecIPTTL() -> IPFragmenter(1500) -> [0]arpq1;
