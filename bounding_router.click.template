@@ -16,6 +16,9 @@ c1 :: Classifier(12/0806 20/0001,
                   12/0806 20/0002,
                   12/0800,
                   -);
+cl[3] -> Discard();
+c0[3] -> Discard();
+c1[3] -> Discard();
 
 FromDevice(LAN_INTF) -> [0]cl;
 FromDevice(WAN0_INTF) -> [0]c0;
@@ -52,12 +55,10 @@ c0[1] -> [1]arpq0;
 c1[1] -> [1]arpq1;
 
 hs :: HashSwitch(4, 2);
-rrs :: RoundRobinSched()
 
 cl[2] -> Strip(14) -> hs;
-c0[2] -> Strip(14) -> StripIPHeader() -> [0]rrs;
-c1[2] -> Strip(14) -> StripIPHeader() -> [1]rrs;
+c0[2] -> Strip(14) -> StripIPHeader() -> [0]arpql;
+c1[2] -> Strip(14) -> StripIPHeader() -> [0]arpql;
 
 hs[0] -> IPEncap(50, WAN0_IP, WAN0_TARGET) -> DecIPTTL() -> IPFragmenter(1500) -> [0]arpq0;
 hs[1] -> IPEncap(50, WAN1_IP, WAN1_TARGET) -> DecIPTTL() -> IPFragmenter(1500) -> [0]arpq1;
-rrs -> DecIPTTL() -> [0]arpql;
