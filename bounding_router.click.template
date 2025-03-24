@@ -10,11 +10,11 @@ cl :: Classifier(12/0806 20/0001,
                   -);
 c0 :: Classifier(12/0806 20/0001,
                   12/0806 20/0002,
-                  12/0800 21/32,
+                  12/0800 23/32,
                   -);
 c1 :: Classifier(12/0806 20/0001,
                   12/0806 20/0002,
-                  12/0800 21/32,
+                  12/0800 23/32,
                   -);
 cl[3] -> Discard();
 c0[3] -> Discard();
@@ -63,8 +63,10 @@ c1[1] -> [1]arpq1;
 hs :: HashSwitch(4, 2);
 
 cl[2] -> Strip(14) -> hs;
-c0[2] -> Strip(14) -> StripIPHeader() -> [0]arpql0;
-c1[2] -> Print("before") -> Strip(14) -> StripIPHeader() -> Print("after") -> [0]arpql1;
+// c0[2] -> Strip(14) -> StripIPHeader() -> [0]arpql0;
+// c1[2] -> Print("before") -> Strip(14) -> StripIPHeader() -> Print("after") -> [0]arpql1;
+c0[2] -> Strip(34) -> [0]arpql0;
+c1[2] -> Strip(34) -> [0]arpql1;
 
 hs[0] -> IPEncap(50, WAN0_IP, WAN0_TARGET) -> DecIPTTL() -> [0]arpq0;
 hs[1] -> IPEncap(50, WAN1_IP, WAN1_TARGET) -> DecIPTTL() -> [0]arpq1;
