@@ -40,13 +40,11 @@ outl :: Queue(1024) -> ToDevice($LAN_INTF);
 out0 :: Queue(1024) -> ToDevice($WAN0_INTF);
 out1 :: Queue(1024) -> ToDevice($WAN1_INTF);
 
-arpql0 :: ARPQuerier($LAN_IP, $LAN_MAC);
-arpql1 :: ARPQuerier($LAN_IP, $LAN_MAC);
+arpql :: ARPQuerier($LAN_IP, $LAN_MAC);
 arpq0 :: ARPQuerier($WAN0_IP, $WAN0_MAC);
 arpq1 :: ARPQuerier($WAN1_IP, $WAN1_MAC);
 
-arpql0 -> outl;
-arpql1 -> outl;
+arpql -> outl;
 arpq0 -> out0;
 arpq1 -> out1;
 
@@ -64,19 +62,18 @@ cl[0] -> arprl -> outl;
 c0[0] -> arpr0 -> out0;
 c1[0] -> arpr1 -> out1;
 
-t :: Tee(2);
-
-cl[1] -> t;
-t[0] -> [1]arpql0;
-t[1] -> [1]arpql1;
+cl[1] -> [1]arpql;
 c0[1] -> [1]arpq0;
 c1[1] -> [1]arpq1;
 
 hs :: HashSwitch(4, 2);
+rrs :: RoundRobinSchedular();
 
 cl[2] -> Strip(14) -> hs;
-c0[2] -> Strip(34) -> CheckIPHeader() -> [0]arpql0;
-c1[2] -> Strip(34) -> CheckIPHeader() -> [0]arpql1;
+c0[2] -> Strip(34) -> [0]rrs;
+c1[2] -> Strip(34) -> [1]rrs;
+
+rrs -> TCPIn() -> CheckIPHeader() -> [0]arpql;
 
 hs[0] -> IPEncap(50, $WAN0_IP, $WAN0_TARGET) -> DecIPTTL() -> [0]arpq0;
 hs[1] -> IPEncap(50, $WAN1_IP, $WAN1_TARGET) -> DecIPTTL() -> [0]arpq1;
