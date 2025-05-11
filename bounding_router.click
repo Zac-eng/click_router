@@ -67,13 +67,13 @@ c0[1] -> [1]arpq0;
 c1[1] -> [1]arpq1;
 
 hs :: HashSwitch(4, 2);
-rrs :: RoundRobinSchedular();
+rru :: RoundRobinUnqueue();
 
 cl[2] -> Strip(14) -> hs;
-c0[2] -> Strip(34) -> [0]rrs;
-c1[2] -> Strip(34) -> [1]rrs;
+c0[2] -> Strip(34) -> Queue -> [0]rru;
+c1[2] -> Strip(34) -> Queue -> [1]rru;
 
-rrs -> TCPIn() -> CheckIPHeader() -> [0]arpql;
+rru -> [0]arpql;
 
 hs[0] -> IPEncap(50, $WAN0_IP, $WAN0_TARGET) -> DecIPTTL() -> [0]arpq0;
 hs[1] -> IPEncap(50, $WAN1_IP, $WAN1_TARGET) -> DecIPTTL() -> [0]arpq1;
