@@ -16,7 +16,7 @@ public:
 
   int configure(Vector<String> &conf, ErrorHandler *errh) CLICK_COLD;
   void push(int, Packet *p);
-  void add_handlers() CLICK_COLD;
+  // void add_handlers() CLICK_COLD;
 
 private:
   HashTable <uint16_t, Packet *> *_map_packet;
