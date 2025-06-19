@@ -11,8 +11,6 @@
 #include "ipid_setter.hh"
 CLICK_DECLS
 
-IpIdSetter::IpIdSetter(): _next_id(0) {}
-
 IpIdSetter::~IpIdSetter() {}
 
 void
