@@ -57,6 +57,7 @@ EncapReorder::push(int port, Packet *p)
         break;
       }
       output(0).push(next_packet->second);
+      _map_packet->erase(next_packet);
       ++_next_id;
     }
   }
