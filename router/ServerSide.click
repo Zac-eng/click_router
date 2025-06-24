@@ -60,6 +60,7 @@ GetIPAddress(16) -> br_nic;
 
 // Capsulation packet
 ipc_br[1] 
+-> EncapReorder()
 -> Strip (28) 
 -> CheckIPHeader()
 // -> IPPrint(OutSrv) 
@@ -73,4 +74,3 @@ Idle -> srv_nic;
 srv_nic -> Strip(14) -> CheckIPHeader()
         //-> Print("In Srv", 40) 
         -> [1]MPCG;
-
