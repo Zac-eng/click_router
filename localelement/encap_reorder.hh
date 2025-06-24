@@ -11,7 +11,7 @@ public:
   ~EncapReorder() CLICK_COLD;
 
   const char *class_name() const override	{ return "EncapReorder"; }
-  const char *port_count() const override	{ return "1-*/1"; }
+  const char *port_count() const override	{ return "1-/1"; }
   const char *processing() const override	{ return PUSH; }
 
   int configure(Vector<String> &conf, ErrorHandler *errh) CLICK_COLD;

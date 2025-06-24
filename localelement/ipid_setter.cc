@@ -13,14 +13,20 @@ CLICK_DECLS
 
 IpIdSetter::~IpIdSetter() {}
 
+int
+IpIdSetter::configure_ports(bool is_input, int nports, ErrorHandler *errh) {
+  return nports;
+}
+
 void
 IpIdSetter::push(int port, Packet *p)
 {
-  click_ip     *iph = (click_ip *) (p -> data());
-  
+  WritablePacket  *writable_packet = p->uniqueify(); 
+  click_ip        *iph = (click_ip *)(writable_packet->data());
+
   iph->ip_id = _next_id;
   ++_next_id;
-  output(0).push(p);
+  output(port).push(writable_packet);
 }
 
 CLICK_ENDDECLS

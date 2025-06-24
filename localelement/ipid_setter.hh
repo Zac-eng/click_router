@@ -16,7 +16,8 @@ public:
     IpIdSetter() : _next_id(0) {}
     ~IpIdSetter();
     const char *class_name() const override { return "IpIdSetter"; }
-    const char *port_count() const override { return "1-/1"; }
+    const char *port_count() const override { return "1-/1-"; }
+    int configure_ports(bool is_input, int nports, ErrorHandler *errh);
     const char *processing() const override { return PUSH; }
 
     void   push(int port, Packet *p);
