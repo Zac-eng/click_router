@@ -36,12 +36,12 @@ EncapReorder::push(int port, Packet *p)
     output(0).push(p);
     ++_next_id;
     while (true) {
-      HashTable <uint16_t, Packet *>::iterator next_packet = _map_packet->find(_next_id);
-      if (next_packet == _map_packet->end()) {
+      Packet* next_packet = _map_packet->get(_next_id);
+      if (!next_packet) {
         break;
       }
-      output(0).push(next_packet->second);
-      _map_packet->erase(next_packet);
+      output(0).push(next_packet);
+      _map_packet->erase(_next_id);
       ++_next_id;
     }
   }
