@@ -54,7 +54,7 @@ ipc_br :: IPClassifier( dst udp port BrProve,
                         -) ;
 // Probe packet
 ipc_br[0] -> 
-Print(Probe, 40) -> 
+// Print(Probe, 40) -> 
 [0]MPCG;
 
 MPCG -> 
