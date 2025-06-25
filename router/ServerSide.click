@@ -32,11 +32,14 @@ elementclass LocalNIC {$host, $hostnic, $arpnet|
     aq[1] -> q;    
 }
 
+elementclass GlobalNIC {$host, $hostnic, $arpnet, $gwip|
+    input[0] -> SetIPAddress($gwip) -> LocalNIC($host, $hostnic, $arpnet) -> [0]output;
+}
 
-MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve);
+MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve, COM_TYPE SAT );
 
 //br_todevice :: LocalTD(BrNIC, $BrNIC);
-br_nic :: LocalNIC(BrNIC, $BrNIC, BrNIC:ip);
+br_nic :: GlobalNIC(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 //srv_todevice :: LocalTD(SrvNIC, $SrvNIC);
 srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
 
@@ -51,7 +54,7 @@ ipc_br :: IPClassifier( dst udp port BrProve,
                         -) ;
 // Probe packet
 ipc_br[0] -> 
-// Print(Probe, 40) -> 
+Print(Probe, 40) -> 
 [0]MPCG;
 
 MPCG -> 
@@ -72,5 +75,5 @@ ipc_br[2] -> Discard;
 // *********  Server Network
 Idle -> srv_nic;
 srv_nic -> Strip(14) -> CheckIPHeader()
-        //-> Print("In Srv", 40) 
-        -> [1]MPCG;
+    //-> Print("In Srv", 40) 
+    -> [1]MPCG;
