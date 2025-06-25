@@ -2,11 +2,11 @@ define(
     $CltGWPort 30000,
     $SrvGWProbe 20000,
     $SrvGWMain 20001,   
-    $SatNIC0 ethMobNW,
-    $satgw0  192.168.2.1,
-    $SatNIC1 ethSatNW,
-    $satgw1  192.168.1.1,
-    $srvgw  192.168.3.1,
+    $SatNIC0 wlp3s0,
+    $satgw0  10.18.254.254,
+    $SatNIC1 enx3897a475d974,
+    $satgw1  10.11.254.254,
+    $srvgw  13.112.109.3,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
