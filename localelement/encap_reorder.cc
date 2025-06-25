@@ -31,8 +31,8 @@ EncapReorder::push(int port, Packet *p)
   click_ip     *iph = (click_ip *) (p -> data());
   uint16_t     ip_id = iph->ip_id;
 
-  click_chatter("input ip id: \n", ip_id);
   if (ip_id == _next_id) {
+    click_chatter("in sequence: %d\n", ip_id);
     output(0).push(p);
     ++_next_id;
     while (true) {
@@ -46,6 +46,7 @@ EncapReorder::push(int port, Packet *p)
     }
   }
   else {
+    click_chatter("out-of-order: %d\n", ip_id);
     (*_map_packet)[ip_id] = p->clone();
     p->kill();
   }

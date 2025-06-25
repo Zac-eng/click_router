@@ -23,18 +23,9 @@ IpIdSetter::push(int port, Packet *p)
 {
   WritablePacket  *w_packet = p->uniqueify(); 
   click_ip        *iph = (click_ip *)(w_packet->data());
-  // click_udp       *udph = (click_udp *)(w_packet->transport_header());
 
   iph->ip_id = _next_id;
   ++_next_id;
-  // iph->ip_sum = 0;
-  // iph->ip_sum = click_in_cksum((unsigned char *)iph, sizeof(click_ip));
-  // udph->uh_sum = 0;
-  // int len = ntohs(udph->uh_ulen);
-  // udph->uh_sum = click_in_cksum_pseudohdr(
-  //   click_in_cksum((unsigned char *)udph, len),
-  //   iph, len
-  // );
   output(port).push(w_packet);
 }
 
