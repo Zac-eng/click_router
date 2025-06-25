@@ -46,7 +46,8 @@ EncapReorder::push(int port, Packet *p)
     }
   }
   else {
-    (*_map_packet)[ip_id] = p;
+    (*_map_packet)[ip_id] = p->clone();
+    p->kill();
   }
 }
 

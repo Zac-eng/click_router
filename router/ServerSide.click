@@ -1,7 +1,7 @@
 define(    
     $BrProve 20000,
     $BrMain 20001,
-    $BrNIC  eth0,    
+    $BrNIC  eth0,
     $SrvNIC ethServer,
     $arpLoc 192.168.4.0/24
 )
