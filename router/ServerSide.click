@@ -1,7 +1,7 @@
 define(    
     $BrProve 20000,
     $BrMain 20001,
-    $BrNIC  ethBr,    
+    $BrNIC  eth0,    
     $SrvNIC ethServer,
     $arpLoc 192.168.4.0/24
 )
@@ -33,7 +33,7 @@ elementclass LocalNIC {$host, $hostnic, $arpnet|
 }
 
 
-MPCG:: MultipathGateway(BrNIC:ip, BrProve);
+MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve);
 
 //br_todevice :: LocalTD(BrNIC, $BrNIC);
 br_nic :: LocalNIC(BrNIC, $BrNIC, BrNIC:ip);
