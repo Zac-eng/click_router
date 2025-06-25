@@ -72,11 +72,13 @@ loc_nic -> Strip(14) -> rrs;
 rrs[0]
 -> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM false)
 -> [0]idsetter[0]
+-> ResetIPChecksum()
 -> sat_nic0;
 
 rrs[1]
 -> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWProbe, CHECKSUM false)
 -> [1]idsetter[1]
+-> ResetIPChecksum()
 -> sat_nic1;
 
 Idle -> loc_nic;
