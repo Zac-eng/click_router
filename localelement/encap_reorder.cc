@@ -45,15 +45,19 @@ EncapReorder::push(int port, Packet *p)
       ++_next_id;
     }
   }
+  else if (ip_id < _next_id) {
+    click_chatter("out-of-order, killed: %d\n", ip_id);
+    p->kill();
+  }
   else {
     click_chatter("out-of-order: %d\n", ip_id);
+    (*_map_packet)[ip_id] = p->clone();
+    p->kill();
     if (_map_packet->size() > TABLE_CAP) {
       while (!_map_packet->get(_next_id)) {
         ++_next_id;
       }
     }
-    (*_map_packet)[ip_id] = p->clone();
-    p->kill();
   }
 }
 
