@@ -69,21 +69,21 @@ sat_nic1 -> Strip(14)
 -> loc_nic;
 
 rrs :: RoundRobinSwitch();
-idsetter :: IpIdSetter();
+counter :: Counter();
 
 loc_nic -> Strip(14) -> rrs;
 
 rrs[0]
--> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM false)
--> [0]idsetter[0]
--> SetIPChecksum()
+-> counter
+-> StoreData(OFFSET 0, LENGTH 4, ENDIAN true, DATA $count)
+-> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> Print(output0)
 -> sat_nic0;
 
 rrs[1]
--> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM false)
--> [1]idsetter[1]
-->SetIPChecksum()
+-> counter
+-> StoreData(OFFSET 0, LENGTH 4, ENDIAN true, DATA $count)
+-> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> Print(output1)
 -> sat_nic1;
 

@@ -63,8 +63,9 @@ GetIPAddress(16) -> br_nic;
 
 // Capsulation packet
 ipc_br[1] 
--> EncapReorder()
--> Strip (28) 
+-> Strip (28)
+-> CounterReorder()
+-> Strip(4) 
 -> CheckIPHeader()
 // -> IPPrint(OutSrv) 
 -> srv_nic;
