@@ -1,5 +1,5 @@
-#ifndef ENCAP_REORDER_HH
-#define ENCAP_REORDER_HH
+#ifndef COUNTER_REORDER_HH
+#define COUNTER_REORDER_HH
 #include <click/element.hh>
 #include <click/hashtable.hh>
 #include <click/ipaddress.hh>
