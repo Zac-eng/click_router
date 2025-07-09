@@ -11,6 +11,8 @@
 #include "encap_reorder.hh"
 CLICK_DECLS
 
+#define TABLE_CAP 20
+
 EncapReorder::EncapReorder()
 : _next_id(0)
 {
@@ -50,7 +52,7 @@ EncapReorder::push(int port, Packet *p)
     p->kill();
   }
   else {
-    click_chatter("out-of-order: %d\n", ip_id);
+    click_chatter("out-of-order: %d, size: %d\n", ip_id, _map_packet->size());
     (*_map_packet)[ip_id] = p->clone();
     p->kill();
     if (_map_packet->size() > TABLE_CAP) {

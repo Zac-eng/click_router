@@ -5,8 +5,6 @@
 #include <click/ipaddress.hh>
 CLICK_DECLS
 
-#define TABLE_CAP 500
-
 class EncapReorder : public Element {
 public:
   EncapReorder() CLICK_COLD;
