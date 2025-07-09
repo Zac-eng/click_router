@@ -28,6 +28,20 @@ EncapReorder::configure(Vector<String> & conf, ErrorHandler *errh)
 }
 
 void
+EncapReorder::flush_packets()
+{
+  while (true) {
+    Packet* next_packet = _map_packet->get(_next_id);
+    if (!next_packet) {
+      break;
+    }
+    output(0).push(next_packet);
+    _map_packet->erase(_next_id);
+    ++_next_id;
+  }
+}
+
+void
 EncapReorder::push(int port, Packet *p)
 {
   click_ip     *iph = (click_ip *) (p -> data());
@@ -37,15 +51,7 @@ EncapReorder::push(int port, Packet *p)
     click_chatter("in sequence: %d\n", ip_id);
     output(0).push(p);
     ++_next_id;
-    while (true) {
-      Packet* next_packet = _map_packet->get(_next_id);
-      if (!next_packet) {
-        break;
-      }
-      output(0).push(next_packet);
-      _map_packet->erase(_next_id);
-      ++_next_id;
-    }
+    flush_packets();
   }
   else if (ip_id < _next_id) {
     click_chatter("out-of-order, killed: %d\n", ip_id);
@@ -59,6 +65,7 @@ EncapReorder::push(int port, Packet *p)
       while (!_map_packet->get(_next_id)) {
         ++_next_id;
       }
+      flush_packets();
     }
   }
 }

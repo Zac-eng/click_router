@@ -21,6 +21,8 @@ public:
 private:
   HashTable <uint16_t, Packet *> *_map_packet;
   uint16_t _next_id;
+
+  void flush_packets();
 };
 
 CLICK_ENDDECLS
