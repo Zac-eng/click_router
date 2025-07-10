@@ -16,7 +16,7 @@ PortInfo(
     BrMain $BrMain
 )
 
-ControlSocket(unix, /tmp/ntnl5g)
+// ControlSocket(unix, /tmp/ntnl5g)
 
 elementclass LocalNIC {$host, $hostnic, $arpnet|
     FromDevice($hostnic) -> c:: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800, -);
@@ -51,6 +51,7 @@ Idle -> br_nic;
 br_nic -> CheckIPHeader(OFFSET 14) -> Strip(14) ->
 ipc_br :: IPClassifier( dst udp port BrProve,
                         dst udp port BrMain,
+                        dst 50,
                         -) ;
 // Probe packet
 ipc_br[0] -> 
@@ -69,8 +70,17 @@ ipc_br[1]
 // -> IPPrint(OutSrv) 
 -> srv_nic;
 
+ipc_br[2]
+-> StripIPHeader()
+-> decr :: IPsecAES(0)
+-> vauth :: IPsecAuthHMACSHA1(1)
+-> espro :: EspReorder()
+-> espuncap :: IPsecESPUnencap()
+-> CheckIPHeader()
+-> srv_nic;
+
 //etc
-ipc_br[2] -> Discard;
+ipc_br[3] -> Discard;
 
 // *********  Server Network
 Idle -> srv_nic;
