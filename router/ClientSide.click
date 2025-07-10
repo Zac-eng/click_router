@@ -4,13 +4,13 @@ define(
     $SrvGWMain 20001,   
     $SatNIC0 wlp3s0,
 //    $satgw0  172.20.10.1,
-    $satgw0  10.18.254.254,
+    $satgw0  10.100.0.1,
 //    $SatNIC1 enx3897a475d974,
     $SatNIC1 enp1s0,
-    $satgw1  10.11.254.254,
+    $satgw1  192.168.10.1,
 //    $SatNIC1 enp2s0,
 //    $satgw1  10.0.3.2,
-    $srvgw  54.178.5.148,
+    $srvgw  52.195.223.247,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -69,7 +69,6 @@ sat_nic1 -> Strip(14)
 -> loc_nic;
 
 rrs :: RoundRobinSwitch();
-idsetter :: IpIdSetter();
 
 loc_nic -> Strip(14)
 -> espen :: IPsecESPEncap()
@@ -78,12 +77,12 @@ loc_nic -> Strip(14)
 -> rrs;
 
 rrs[0]
--> IPsecEncap(PROTO 50, SatSrc0:ip, SrvGW:ip)
+-> IPEncap(PROTO 50, SRC SatSrc0:ip, DST SrvGW:ip)
 -> Print(output0)
 -> sat_nic0;
 
 rrs[1]
--> IPsecEncap(PROTO 50, SatSrc1:ip, SrvGW:ip)
+-> IPEncap(PROTO 50, SRC SatSrc1:ip, DST SrvGW:ip)
 -> Print(output1)
 -> sat_nic1;
 

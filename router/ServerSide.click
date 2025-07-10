@@ -51,8 +51,9 @@ Idle -> br_nic;
 br_nic -> CheckIPHeader(OFFSET 14) -> Strip(14) ->
 ipc_br :: IPClassifier( dst udp port BrProve,
                         dst udp port BrMain,
-                        dst 50,
                         -) ;
+esp_br :: Classifier(9/32, -);
+
 // Probe packet
 ipc_br[0] -> 
 // Print(Probe, 40) -> 
@@ -70,7 +71,9 @@ ipc_br[1]
 // -> IPPrint(OutSrv) 
 -> srv_nic;
 
-ipc_br[2]
+ipc_br[2] -> esp_br;
+
+esp_br[0]
 -> StripIPHeader()
 -> decr :: IPsecAES(0)
 -> vauth :: IPsecAuthHMACSHA1(1)
@@ -80,7 +83,7 @@ ipc_br[2]
 -> srv_nic;
 
 //etc
-ipc_br[3] -> Discard;
+esp_br[1] -> Discard;
 
 // *********  Server Network
 Idle -> srv_nic;
