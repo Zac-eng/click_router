@@ -1,17 +1,16 @@
 #ifndef MyTCP_REORDER_HH
 #define MyTCP_REORDER_HH
+
+#include <click/config.h>
 #include <click/element.hh>
+#include <click/confparse.hh>
+#include <click/error.hh>
+#include <click/packet.hh>
+#include <clicknet/tcp.h>
+#include <clicknet/ip.h>
+#include <click/timer.hh>
 #include <click/hashtable.hh>
 #include <click/ipaddress.hh>
-#include <click/config.h>
-#include <click/args.hh>
-#include <click/glue.hh>
-#include <clicknet/ip.h>
-#include <clicknet/udp.h>
-#include <clicknet/tcp.h>
-#include <clicknet/icmp.h>
-#include <click/ipaddress.hh>
-#include <click/straccum.hh>
 
 CLICK_DECLS
 
@@ -30,10 +29,49 @@ public:
 
 private:
   HashTable <uint32_t, Packet *> *_packet_map;
-  uint32_t _next_id;
+  uint32_t _next_seq;
 
   void flush_packets();
 };
 
 CLICK_ENDDECLS
 #endif
+
+
+// #include <map>
+
+// class MyTCPReorder : public Element {
+// public:
+//     MyTCPReorder();
+//     ~MyTCPReorder();
+
+//     const char *class_name() const { return "MyTCPReorder"; }
+//     const char *port_count() const { return "1-/2"; }
+//     const char *processing() const { return PUSH; }
+
+//     int configure(Vector<String> &, ErrorHandler *);
+//     void push(int port, Packet *p);
+
+//     static String read_handler(Element *e, void *thunk);
+//     void add_handlers();
+
+// private:
+//     // Parameters
+//     uint32_t _capacity;
+//     uint32_t _timeout_ms;
+
+//     // Data structures for packet reordering
+//     typedef std::multimap<uint32_t, Packet*> PacketMap;
+//     PacketMap _packet_map;
+//     uint32_t _next_seq;
+//     Timer _timer;
+
+//     // State tracking
+//     uint32_t _buffer_count;
+//     uint32_t _total_packets;
+//     uint32_t _reordered_packets;
+
+//     void check_release();
+//     void release_packets();
+//     static void timer_hook(Timer*, void*);
+// };
