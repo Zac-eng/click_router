@@ -3,10 +3,10 @@ define(
     $SrvGWProbe 20000,
     $SrvGWMain 20001,   
     $SatNIC0 enp1s0,
-    $satgw0  10.100.0.1,
+    $satgw0  10.11.254.254,
 //    $SatNIC1 enx3897a475d974,
     $SatNIC1 enp2s0,
-    $satgw1  192.168.10.1,
+    $satgw1  10.11.254.254,
     $srvgw  52.195.209.173,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
@@ -50,7 +50,7 @@ TimedSource(INTERVAL 1.0, DATA "0000") -> StoreData(0, \<0a000000>) ->beacon_t :
 -> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWProbe, CHECKSUM true)
 -> sat_nic0;
 
-sat_nic0 -> Strip(14)
+sat_nic0 -> Strip(14)  
 -> Strip(28) -> CheckIPHeader()
 -> GetIPAddress(16)  //Set ip annotation for arp
 -> loc_nic;
@@ -66,26 +66,16 @@ sat_nic1 -> Strip(14)
 -> loc_nic;
 
 rrs :: RoundRobinSwitch();
-ipslookup :: RadixIPsecLookup(0.0.0.0/0 $srvgw 0 234 \<0xABCDEFFF001DEFD2354550FE40CD708E> \<0x112233EE556677888877665544332211> 300 64);
 
-// IPsecAES - 
-loc_nic -> Strip(14)
--> ipslookup
--> espen :: IPsecESPEncap()
--> cauth :: IPsecAuthHMACSHA1(0)
--> encr :: IPsecAES(1)
--> rrs;
+loc_nic -> Strip(14) -> rrs;
 
-// IPsecEncap requires dst_ip_anno
 rrs[0]
--> IPsecEncap(PROTO 50)
--> FixIPSrc(SatSrc0:ip)
+-> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> Print(output0)
 -> sat_nic0;
 
 rrs[1]
--> IPsecEncap(PROTO 50)
--> FixIPSrc(SatSrc1:ip)
+-> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> Print(output1)
 -> sat_nic1;
 
