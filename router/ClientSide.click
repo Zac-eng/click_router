@@ -10,7 +10,7 @@ define(
     $satgw1  10.11.254.254,
 //    $SatNIC1 enp2s0,
 //    $satgw1  10.0.3.2,
-    $srvgw  54.178.5.148,
+    $srvgw  52.195.209.173,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -74,12 +74,10 @@ loc_nic -> Strip(14) -> rrs;
 
 rrs[0]
 -> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
--> Print(output0)
 -> sat_nic0;
 
 rrs[1]
 -> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
--> Print(output1)
 -> sat_nic1;
 
 Idle -> loc_nic;

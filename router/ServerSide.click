@@ -64,16 +64,38 @@ GetIPAddress(16) -> br_nic;
 // Capsulation packet
 ipc_br[1] 
 -> Strip (28) 
--> ipc :: IPClassifier( dst tcp , -);
+-> ipc :: Classifier( 9/06 , - );
+
+up ::
+{ [0]
+    -> IPIn
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
+    //HTTPIn, uncomment when needed (see above)
+    //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
+    //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
+    //Same than IN
+    //-> HTTPOut()
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> IPOut(READONLY false, CHECKSUM false)
+    -> [0]
+}
+
+down ::
+{ [0]
+    -> IPIn
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+    //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
+    //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
+    //-> HTTPOut()
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> IPOut(READONLY false, CHECKSUM false)
+    -> [0]
+}
 
 ipc[0]
 -> CheckIPHeader()
 -> CheckTCPHeader(CHECKSUM false, VERBOSE true)
--> Script()
--> IPIn
--> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME tOUT, RETURNNAME tIN, REORDER true)
--> tOUT :: TCPOut(READONLY false, CHECKSUM false)
--> IPOut(READONLY false, CHECKSUM false)
+-> up
 -> CheckIPHeader()
 -> srv_nic;
 
@@ -86,6 +108,8 @@ ipc_br[2] -> Discard;
 
 // *********  Server Network
 Idle -> srv_nic;
-srv_nic -> Strip(14) -> CheckIPHeader()
-    //-> Print("In Srv", 40) 
-    -> [1]MPCG;
+srv_nic
+-> Strip(14)
+-> CheckIPHeader()
+-> down
+-> [1]MPCG;
