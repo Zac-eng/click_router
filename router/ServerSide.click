@@ -67,7 +67,13 @@ ipc_br[1]
 -> ipc :: IPClassifier( dst tcp , -);
 
 ipc[0]
--> TCPReorder()
+-> CheckIPHeader()
+-> CheckTCPHeader(CHECKSUM false, VERBOSE true)
+-> Script()
+-> IPIn
+-> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME tOUT, RETURNNAME tIN, REORDER true)
+-> tOUT :: TCPOut(READONLY false, CHECKSUM false)
+-> IPOut(READONLY false, CHECKSUM false)
 -> CheckIPHeader()
 -> srv_nic;
 
