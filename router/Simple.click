@@ -1,0 +1,1 @@
+FromDevice(en0) -> Print -> Discard;
