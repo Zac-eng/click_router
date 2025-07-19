@@ -6,12 +6,14 @@ AddressInfo(
   Intfl $INTFL,
   Intf1 $INTF1,
   Intf2 $INTF2,
+  Local $LOCALNET,
 )
 
 // define(Intf1:eth 98:03:9b:33:fe:e2)
 // define(Intf2:eth 98:03:9b:33:fe:db)
 define($NET1 10.220.0.0/16)
 define($NET2 10.221.0.0/16)
+define($LOCALNET 192.168.4.0/24)
 // define(Intf1:ip 10.220.0.1)
 // define(Intf2:ip 10.221.0.1)
 define($PORT1 0)
@@ -87,7 +89,7 @@ elementclass Receiver { $intf, $mac, $ip, $range |
 
     arpr[1]
     -> Print("RX ARP Request $mac", -1, ACTIVE $printarp)
-    -> arpRespIN :: ARPResponder($range $mac)
+    -> arpRespIN :: ARPResponder($ip $mac, $range $mac)
     -> Print("TX ARP Responding", -1, ACTIVE $printarp)
     -> etherOUT;
 
@@ -101,9 +103,9 @@ elementclass Receiver { $intf, $mac, $ip, $range |
 
 }
 
-rl :: Receiver($INTFL,Intfl:eth,Intfl:ip,Intfl:ip);
-r1 :: Receiver($INTF1,Intf1:eth,Intf1:ip,Intf1:ip);
-r2 :: Receiver($INTF2,Intf2:eth,Intf2:ip,Intf2:ip);
+rl :: Receiver($INTFL,Intfl:eth,Intfl:ip,Local);
+r1 :: Receiver($INTF1,Intf1:eth,Intf1:ip,Local);
+r2 :: Receiver($INTF2,Intf2:eth,Intf2:ip,Local);
 
 rl
   ->  up ::
