@@ -113,8 +113,8 @@ rl
   { [0]
     -> IPIn
     -> Print(in)
+    -> Script
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER $inreorder)
-
     //HTTPIn, uncomment when needed (see above)
     //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
     //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
