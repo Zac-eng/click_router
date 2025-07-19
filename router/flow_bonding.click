@@ -75,10 +75,11 @@ elementclass Receiver { $intf, $mac, $ip, $range |
     arpr[0]
     -> FlowStrip(14)
     -> receivercheck :: CheckIPHeader(CHECKSUM false)
-    -> inc :: CTXDispatcher(9/01 0, 9/06 0, -)
+    -> inc :: CTXDispatcher(9/06 0, -)
 
 
     inc[0] //TCP or ICMP
+    -> CheckTCPHeader()
     -> [0]output;
 
 
@@ -111,14 +112,16 @@ rl
   ->  up ::
   { [0]
     -> IPIn
+    -> Print(in)
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER $inreorder)
 
     //HTTPIn, uncomment when needed (see above)
     //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
-    -> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
+    //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
     //Same than IN
     //-> HTTPOut()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
+    -> Print(out)
     -> IPOut(READONLY $readonly, CHECKSUM false)
     -> [0]
   }
@@ -134,11 +137,14 @@ downq -> Unqueue
   -> down ::
   { [0]
     -> IPIn
+    -> Script
+    -> Print(in)
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER $inreorder)
     //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
-    -> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
+    //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
     //-> HTTPOut()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
+    -> Print(out)
     -> IPOut(READONLY $readonly, CHECKSUM false)
     -> [0]
   }
