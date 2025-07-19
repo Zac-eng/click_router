@@ -112,8 +112,8 @@ rl
   ->  up ::
   { [0]
     -> IPIn
-    -> Print(in)
     -> Script
+    -> Print(in)
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER $inreorder)
     //HTTPIn, uncomment when needed (see above)
     //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
