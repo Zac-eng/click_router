@@ -19,8 +19,8 @@ elementclass NIC {$host, $hostnic, $arpnet|
 lnic :: NIC(Intfl, $INTFL, Intfl:ip);
 wnic :: NIC(Intfw, $INTFW, Intfw:ip);
 
-lnic -> rs :: RondomSwitch();
-rs[0] -> Queue -> [0]rruq :: RoundRobinUnqueue() -> wnic
+lnic -> Strip(14) -> rs :: RandomSwitch();
+rs[0] -> Queue -> [0]rruq :: RoundRobinUnqueue() -> CheckIPHeader()-> wnic
 rs[1] -> Queue -> [1]rruq;
 
 wnic -> lnic;
