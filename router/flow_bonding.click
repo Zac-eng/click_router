@@ -58,7 +58,7 @@ elementclass ARPDispatcher {
                 arptype[2] -> [3]output
 }
 
-tab :: ARPTable
+tab :: ARPTable()
 
 elementclass Receiver { $intf, $mac, $ip, $range |
 
@@ -66,7 +66,9 @@ elementclass Receiver { $intf, $mac, $ip, $range |
 
     input[0]
     -> arpq :: ARPQuerier($ip, $mac, TABLE tab)
-    -> etherOUT
+    ->Print(after-arp)
+    -> Null
+    -> etherOUT;
 
     f :: FromDevice($intf)
     -> fc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
@@ -75,7 +77,7 @@ elementclass Receiver { $intf, $mac, $ip, $range |
     arpr[0]
     -> FlowStrip(14)
     -> receivercheck :: CheckIPHeader(CHECKSUM false)
-    -> inc :: CTXDispatcher(9/06 0, -)
+    -> inc :: CTXDispatcher(9/01 0, 9/06 0, -)
 
 
     inc[0] //TCP or ICMP
@@ -104,16 +106,16 @@ elementclass Receiver { $intf, $mac, $ip, $range |
 
 }
 
-rl :: Receiver($INTFL,Intfl:eth,Intfl:ip,Local);
-r1 :: Receiver($INTF1,Intf1:eth,Intf1:ip,Local);
-r2 :: Receiver($INTF2,Intf2:eth,Intf2:ip,Local);
+rl :: Receiver($INTFL, Intfl:eth ,Intfl:ip, Local);
+r1 :: Receiver($INTF1, Intf1:eth ,Intf1:ip, Local);
+r2 :: Receiver($INTF2, Intf2:eth ,Intf2:ip, Local);
 
 rl
   ->  up ::
   { [0]
     -> IPIn
     -> Script
-    -> Print(in)
+    -> Print(upin)
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER $inreorder)
     //HTTPIn, uncomment when needed (see above)
     //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
@@ -121,7 +123,7 @@ rl
     //Same than IN
     //-> HTTPOut()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
-    -> Print(out)
+    -> Print(upout)
     -> IPOut(READONLY $readonly, CHECKSUM false)
     -> [0]
   }
@@ -130,22 +132,21 @@ rl
 rrs[0]  -> r1;
 rrs[1]  -> r2;
 
-r1 -> downq :: Queue;
-r2 -> downq;
-
-downq -> Unqueue
-  -> down ::
+down ::
   { [0]
     -> IPIn
     -> Script
-    -> Print(in)
+    -> Print(downin)
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER $inreorder)
     //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
     //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
     //-> HTTPOut()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
-    -> Print(out)
+    -> Print(downout)
     -> IPOut(READONLY $readonly, CHECKSUM false)
     -> [0]
   }
   -> rl;
+
+r1 -> down;
+r2 -> down;
