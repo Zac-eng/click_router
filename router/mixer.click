@@ -1,9 +1,11 @@
 define($INTFL ethServer)
 define($INTFW enx3897a475d974)
+define($arpLoc 192.168.4.0/24)
 
 AddressInfo(
   Intfl $INTFL,
   Intfw $INTFW,
+  arploc $arpLoc
 )
 
 elementclass NIC {$host, $hostnic, $arpnet|
@@ -16,8 +18,8 @@ elementclass NIC {$host, $hostnic, $arpnet|
     aq[1] -> q;    
 }
 
-lnic :: NIC(Intfl, $INTFL, Intfl:ip);
-wnic :: NIC(Intfw, $INTFW, Intfw:ip);
+lnic :: NIC(Intfl, $INTFL, arploc);
+wnic :: NIC(Intfw, $INTFW, arploc);
 
 lnic -> Strip(14) -> rs :: RandomSwitch();
 rs[0] -> Queue -> [0]rruq :: RoundRobinUnqueue() -> CheckIPHeader()-> wnic

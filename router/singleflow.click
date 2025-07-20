@@ -9,12 +9,13 @@
  **/
 define($INTFL ethClient)
 define($INTFW enp1s0)
+define($arpLoc 192.168.4.0/24)
 
 AddressInfo(
   Intfl $INTFL,
   Intfw $INTFW,
+  arploc $arpLoc
 )
-
 
 define($MAC1 98:03:9b:33:fe:e2) //Mac address of the port facing clients
 define($MAC2 98:03:9b:33:fe:db) //Mac address of the port facing servers
@@ -132,8 +133,8 @@ elementclass Receiver {$intf, $mac, $ip, $range |
 }
 
 //Replace the second IP1 per NET1 to act as a transparent ARP proxy, therefore not routing
-r1 :: Receiver($INTFL, Intfl:eth, Intfl:ip, Intfl:ip);
-r2 :: Receiver($INTFW, Intfw:eth, Intfw:ip, Intfw:ip);
+r1 :: Receiver($INTFL, Intfl:eth, Intfl:ip, arploc);
+r2 :: Receiver($INTFW, Intfw:eth, Intfw:ip, arploc);
 
 //Idle -> host :: Null;
 
