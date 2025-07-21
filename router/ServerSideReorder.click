@@ -82,23 +82,16 @@ MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve, COM_TYPE SAT );
 srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
 br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 
-// ********  Bridge Network
-Idle -> br_nic;
-// FromDevice($BrNIC) 
-// -> c_br :: Classifier(12/0806 20/0002, 12/0800, -); 
-// c_br[0] -> [1]br_todevice;
-br_nic -> CheckIPHeader(OFFSET 14) -> FlowStrip(14) ->
+br_nic
+-> CheckIPHeader()
 ipc_br :: IPClassifier( dst udp port BrProve,
                         dst udp port BrMain,
                         -) ;
-// Probe packet
-ipc_br[0] -> 
-// Print(Probe, 40) -> 
-[0]MPCG;
 
-MPCG -> 
-// Print(Encap, 40) -> 
-GetIPAddress(16) -> br_nic;
+ipc_br[0]
+-> [0]MPCG;
+
+MPCG -> CheckIPHeader -> br_nic;
 
 up ::
 { [0]
@@ -122,17 +115,13 @@ down ::
     -> [0]
 }
 
-// Capsulation packet
 ipc_br[1] 
--> FlowStrip (28)
+-> FlowStrip(28)
 -> up
 -> srv_nic;
 
-//etc
 ipc_br[2] -> Discard;
 
-// *********  Server Network
-Idle -> srv_nic;
-srv_nic -> FlowStrip(14) -> down
-    //-> Print("In Srv", 40) 
-    -> [1]MPCG;
+srv_nic
+-> down
+-> [1]MPCG;
