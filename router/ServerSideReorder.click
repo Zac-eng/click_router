@@ -79,8 +79,8 @@ elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
 
 MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve, COM_TYPE SAT );
 
-rl :: Receiver(SrvNIC, $SrvNIC, arploc);
-rw :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
+srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
+br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 
 // ********  Bridge Network
 Idle -> br_nic;
