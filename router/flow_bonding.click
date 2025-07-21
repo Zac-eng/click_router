@@ -1,6 +1,7 @@
 define($INTFL ethClient)
 define($INTF1 enp1s0)
 define($INTF2 enp2s0)
+define($LOCALNET 192.168.4.0/24)
 
 AddressInfo(
   Intfl $INTFL,
@@ -9,39 +10,17 @@ AddressInfo(
   Local $LOCALNET,
 )
 
-// define(Intf1:eth 98:03:9b:33:fe:e2)
-// define(Intf2:eth 98:03:9b:33:fe:db)
-define($NET1 10.220.0.0/16)
-define($NET2 10.221.0.0/16)
-define($LOCALNET 192.168.4.0/24)
-// define(Intf1:ip 10.220.0.1)
-// define(Intf2:ip 10.221.0.1)
-define($PORT1 0)
-define($PORT2 1)
-
-define($word ATTACK)
-define($mode ALERT)
-
-define($all 0) //Search for multiple occurences. Not optimized.
-define($pattern DELETED)
-
 //Stack Parameters
 define($inreorder 1) //Enable reordering
 define($readonly 0) //Read-only (payload is never modified)
 define($tcpchecksum 1) //Fix tcp checksum
 define($checksumoffload 1) //Enable hardware checksum offload
 
-//IO paramter
-define($bout 32)
-define($ignore 0)
-
 //Debug parameters
 define($rxverbose 99)
 define($txverbose 99)
 define($printarp 0)
 define($printunknown 0)
-
-// TSCClock(NOWAIT true);
 
 elementclass ARPDispatcher {
         input[0]->
@@ -66,8 +45,6 @@ elementclass Receiver { $intf, $mac, $ip, $range |
 
     input[0]
     -> arpq :: ARPQuerier($ip, $mac, TABLE tab)
-    ->Print(after-arp)
-    -> Null
     -> etherOUT;
 
     f :: FromDevice($intf)
@@ -117,17 +94,13 @@ rl
     -> Script
     -> Print(upin)
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER $inreorder)
-    //HTTPIn, uncomment when needed (see above)
-    //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
-    //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
-    //Same than IN
-    //-> HTTPOut()
+    -> TCPReorder()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
     -> Print(upout)
     -> IPOut(READONLY $readonly, CHECKSUM false)
     -> [0]
   }
-  -> rrs :: RoundRobinSwitch();
+  -> rrs :: IPRRSwitch();
 
 rrs[0]  -> r1;
 rrs[1]  -> r2;
