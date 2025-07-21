@@ -58,16 +58,15 @@ elementclass Receiver {$host, $hostnic, $arpnet |
         -> Discard
 
     arpr[1]
-    -> arpRespIN :: ARPResponder($range $mac)
+    -> arpRespIN :: ARPResponder($arpnet $host:eth)
     -> etherOUT;
 
-    arpRespIN[1] -> Print("ARP Packet not for $host:eth", -1) -> Discard
+    arpRespIN[1] -> Discard
 
     arpr[2]
-    -> Print("RX ARP Response $host:eth", -1, ACTIVE $printarp)
     -> [1]arpq;
 
-    arpr[3] -> Print("Unknown packet type IN???",-1, ACTIVE) -> Discard();
+    arpr[3] -> Discard();
 
     etherOUT
     -> Queue
