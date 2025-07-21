@@ -1,0 +1,75 @@
+#include <click/config.h>
+#include <click/args.hh>
+#include <click/glue.hh>
+#include <clicknet/ip.h>
+#include <clicknet/udp.h>
+#include <clicknet/icmp.h>
+#include <click/ipaddress.hh>
+#include <click/straccum.hh>
+#include <stdio.h>
+
+#include "encap_reorder.hh"
+CLICK_DECLS
+
+#define TABLE_CAP 20
+
+EncapReorder::EncapReorder()
+: _next_id(0)
+{
+  _map_packet = new HashTable<uint16_t, Packet *>;
+}
+
+EncapReorder::~EncapReorder() {}
+
+int
+EncapReorder::configure(Vector<String> & conf, ErrorHandler *errh)
+{
+  return 0;
+}
+
+void
+EncapReorder::flush_packets()
+{
+  while (true) {
+    Packet* next_packet = _map_packet->get(_next_id);
+    if (!next_packet) {
+      break;
+    }
+    output(0).push(next_packet);
+    _map_packet->erase(_next_id);
+    ++_next_id;
+  }
+}
+
+void
+EncapReorder::push(int port, Packet *p)
+{
+  click_ip     *iph = (click_ip *) (p -> data());
+  uint16_t     ip_id = iph->ip_id;
+
+  if (ip_id == _next_id) {
+    click_chatter("in sequence: %d\n", ip_id);
+    output(0).push(p);
+    ++_next_id;
+    flush_packets();
+  }
+  else if (ip_id < _next_id) {
+    click_chatter("out-of-order, killed: %d\n", ip_id);
+    p->kill();
+  }
+  else {
+    click_chatter("out-of-order: %d, size: %d\n", ip_id, _map_packet->size());
+    (*_map_packet)[ip_id] = p->clone();
+    p->kill();
+    if (_map_packet->size() > TABLE_CAP) {
+      while (!_map_packet->get(_next_id)) {
+        ++_next_id;
+      }
+      flush_packets();
+    }
+  }
+}
+
+CLICK_ENDDECLS
+EXPORT_ELEMENT(EncapReorder)
+ELEMENT_MT_SAFE(EncapReorder)

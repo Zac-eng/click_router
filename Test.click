@@ -1,0 +1,1 @@
+FromDevice(wlp3s0) -> Strip(14) -> IpIdSetter() -> Print(ok) -> Discard;
