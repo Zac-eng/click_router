@@ -3,13 +3,10 @@ define(
     $SrvGWProbe 20000,
     $SrvGWMain 20001,   
     $SatNIC0 enp1s0,
-//    $satgw0  172.20.10.1,
     $satgw0  10.11.254.254,
 //    $SatNIC1 enx3897a475d974,
     $SatNIC1 enp2s0,
     $satgw1  10.11.254.254,
-//    $SatNIC1 enp2s0,
-//    $satgw1  10.0.3.2,
     $srvgw  54.248.178.241,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
