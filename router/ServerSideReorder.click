@@ -64,8 +64,10 @@ GetIPAddress(16) -> br_nic;
 up ::
 { [0]
     -> IPIn
+    -> Print(upin, MAXLENGTH 28)
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> Print(upout, MAXLENGTH 28)
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
 }
@@ -73,8 +75,10 @@ up ::
 down ::
 { [0]
     -> IPIn
+    -> Print(downin, MAXLENGTH 28)
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> Print(downout, MAXLENGTH 28)
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
 }
