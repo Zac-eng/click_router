@@ -97,10 +97,10 @@ rl
     -> TCPReorder()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
     -> Print(upout)
-    -> IPOut(READONLY $readonly, CHECKSUM false)
+    -> IPOut(READONLY $readonly, CHECKSUM true)
     -> [0]
   }
-  -> rrs :: IPRRSwitch();
+  -> rrs :: FlowMinLoadSwitch();
 
 rrs[0]  -> r1;
 rrs[1]  -> r2;
@@ -111,12 +111,10 @@ down ::
     -> Script
     -> Print(downin)
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER $inreorder)
-    //-> HTTPIn(HTTP10 false, NOENC false, BUFFER 0)
-    //-> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
-    //-> HTTPOut()
+    -> TCPReorder()
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
     -> Print(downout)
-    -> IPOut(READONLY $readonly, CHECKSUM false)
+    -> IPOut(READONLY $readonly, CHECKSUM true)
     -> [0]
   }
   -> rl;
