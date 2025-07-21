@@ -54,7 +54,7 @@ elementclass Receiver {$host, $hostnic, $arpnet |
 
     inc[1]
     -> IPPrint("UNKNOWN IP")
-    -> Unstrip(14)
+    //-> Unstrip(14)
         -> Discard
 
     arpr[1]
@@ -84,9 +84,12 @@ br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 
 br_nic
 -> CheckIPHeader()
--> ipc_br :: IPClassifier( dst udp port BrProve,
-                        dst udp port BrMain,
-                        -) ;
+-> ipc_br :: CTXDispatcher( 9/11 30/4e20,
+                            9/11 30/4e21,
+                            -);
+//-> ipc_br :: IPClassifier( dst udp port BrProve,
+//                        dst udp port BrMain,
+//                        -) ;
 
 ipc_br[0]
 -> [0]MPCG;
