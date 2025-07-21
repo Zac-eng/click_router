@@ -1,17 +1,17 @@
 define(
-  $LAN_INTF    bridge100,
-  $LAN_IP      192.168.87.1,
-  $LAN_MAC     d6:57:63:bd:45:64,
-  $LAN_SUBN    192.168.87.0/24,
-  $WAN0_INTF   en6,
+  $LAN_INTF    ethClient,
+  $LAN_IP      192.168.4.10,
+  $LAN_MAC     06:b1:0a:26:7e:18,
+  $LAN_SUBN    192.168.4.0/24,
+  $WAN0_INTF   enp1s0,
   $WAN0_IP     192.168.32.109,
-  $WAN0_MAC    38:97:a4:75:d9:74,
+  $WAN0_MAC    e8:ff:1e:d8:1f:8b,
   $WAN0_SUBN   192.168.32.0/24,
   $WAN0_TARGET 192.168.32.1,
   $WAN1_INTF   en5,
   $WAN1_IP     10.0.0.1,
   $WAN1_MAC    6c:1f:f7:24:53:ea,
-  $WAN1_SUBN   10.0.0.0/16,
+  $WAN1_SUBN   10.0.0.0/24,
   $WAN1_TARGET 10.0.0.2,
 )
 
@@ -79,7 +79,7 @@ cl[2] -> Strip(14) -> rrs;
 c0[2] -> Strip(34) -> Queue() -> [0]rruq;
 c1[2] -> Strip(34) -> Queue() -> [1]rruq;
 
-rruq -> CheckIPHeader() -> TCPReorder()  -> [0]arpql;
+rruq -> TCPReorder() -> [0]arpql;
 
 rrs[0] -> IPEncap(50, $WAN0_IP, $WAN0_TARGET) -> DecIPTTL() -> [0]arpq0;
 rrs[1] -> IPEncap(50, $WAN1_IP, $WAN1_TARGET) -> DecIPTTL() -> [0]arpq1;
