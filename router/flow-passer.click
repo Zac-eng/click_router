@@ -101,7 +101,7 @@ elementclass Receiver {$intf, $mac, $ip, $range |
     arpr[0]
     -> FlowStrip(14)
     -> receivercheck :: CheckIPHeader(CHECKSUM false)
-    -> inc :: CTXDispatcher(9/01 0, 9/06 0, -)
+    -> inc :: CTXDispatcher(9/01 0, 9/06 0, 9/11 0, -)
 
 
     inc[0] //TCP or ICMP
@@ -141,5 +141,5 @@ r1
 
 r2
 -> CheckIPHeader(CHECKSUM false)
+-> TCPReorder()
 -> r1;
-

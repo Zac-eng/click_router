@@ -10,6 +10,20 @@ AddressInfo(
   Local $LOCALNET,
 )
 
+//IDS parameters
+//Not the IDS runs on both paths. You may not want this.
+define($word ATTACK) // will look for the word "ATTACK"
+define($mode ALERT) /* just raise an alert. Valid values are :
+ * ALERT : print an alert, does not change anything. Set readonly below to 1 for performance, as well as tcpchecksum to 0
+ * MASK : Mask the text with asterisks
+ * CLOSE : Close the connection if the pattern is found
+ * REMOVE : Remove the word, HTTP must be enabled!!! (else the client will wait for the missing bytes). Uncomment the lines at the bottom of the file.
+ * REPLACE : Replace with some text. If the text length is different, you need HTTP mode too!!
+ * FULL : Remove the pattern, and add the full content of "$pattern" see below. This need the HTTPIn element to be in buffering mode, as adding bytes need to change the content length.
+ */
+define($all 0) //Search for multiple occurences. Not optimized.
+define($pattern DELETED)
+
 //Stack Parameters
 define($inreorder 1) //Enable reordering
 define($readonly 0) //Read-only (payload is never modified)
@@ -92,11 +106,10 @@ rl
   { [0]
     -> IPIn
     -> Script
-    -> Print(upin)
+    -> Print(MAXLENGTH 28)
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER $inreorder)
-    -> TCPReorder()
+//    -> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
-    -> Print(upout)
     -> IPOut(READONLY $readonly, CHECKSUM true)
     -> [0]
   }
@@ -109,15 +122,15 @@ down ::
   { [0]
     -> IPIn
     -> Script
-    -> Print(downin)
+    -> Print(MAXLENGTH 28)
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER $inreorder)
-    -> TCPReorder()
+//    -> wm :: WordMatcher(WORD $word, MODE $mode, ALL $all, QUIET false, MSG $pattern)
     -> tOUT :: TCPOut(READONLY $readonly, CHECKSUM $tcpchecksum)
-    -> Print(downout)
     -> IPOut(READONLY $readonly, CHECKSUM true)
     -> [0]
   }
   -> rl;
+
 
 r1 -> down;
 r2 -> down;
