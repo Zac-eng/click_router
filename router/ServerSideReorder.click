@@ -84,7 +84,7 @@ br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 
 br_nic
 -> CheckIPHeader()
-ipc_br :: IPClassifier( dst udp port BrProve,
+-> ipc_br :: IPClassifier( dst udp port BrProve,
                         dst udp port BrMain,
                         -) ;
 
