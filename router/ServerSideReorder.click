@@ -16,7 +16,7 @@ PortInfo(
     BrMain $BrMain
 )
 
-ControlSocket(unix, /tmp/ntnl5g)
+// ControlSocket(unix, /tmp/ntnl5g)
 
 elementclass LocalNIC {$host, $hostnic, $arpnet|
     FromDevice($hostnic) -> c:: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800, -);
@@ -61,12 +61,28 @@ MPCG ->
 // Print(Encap, 40) -> 
 GetIPAddress(16) -> br_nic;
 
+up ::
+{ [0]
+    -> IPIn
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [0]
+}
+
+down ::
+{ [0]
+    -> IPIn
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [0]
+}
+
 // Capsulation packet
 ipc_br[1] 
 -> Strip (28)
--> CheckIPHeader()
--> CheckTCPHeader()
--> TCPReorder() 
+-> up
 -> srv_nic;
 
 //etc
@@ -74,6 +90,6 @@ ipc_br[2] -> Discard;
 
 // *********  Server Network
 Idle -> srv_nic;
-srv_nic -> Strip(14) -> CheckIPHeader()
+srv_nic -> Strip(14) -> down
     //-> Print("In Srv", 40) 
     -> [1]MPCG;
