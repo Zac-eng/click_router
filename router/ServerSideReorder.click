@@ -94,8 +94,6 @@ br_nic
 ipc_br[0]
 -> [0]MPCG;
 
-MPCG -> CheckIPHeader -> br_nic;
-
 up ::
 { [0]
     -> IPIn
@@ -126,5 +124,6 @@ ipc_br[1]
 ipc_br[2] -> Discard;
 
 srv_nic
+-> [1]MPCG
 -> down
--> [1]MPCG;
+-> br_nic;
