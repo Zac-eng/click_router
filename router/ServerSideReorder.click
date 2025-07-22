@@ -77,7 +77,7 @@ elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
     input[0] -> SetIPAddress($gwip) -> Receiver($host, $hostnic, $arpnet) -> [0]output;
 }
 
-MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve, COM_TYPE SAT );
+MPCG:: FlowMPCG(BrNIC:ip, BrProve);
 
 srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
 br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
