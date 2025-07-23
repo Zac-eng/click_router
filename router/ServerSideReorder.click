@@ -77,7 +77,7 @@ elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
     input[0] -> SetIPAddress($gwip) -> Receiver($host, $hostnic, $arpnet) -> [0]output;
 }
 
-MPCG:: FlowMPCG(BrNIC:ip, BrProve);
+//MPCG:: FlowMPCG(BrNIC:ip, BrProve);
 
 srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
 br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
@@ -91,8 +91,8 @@ br_nic
 //                        dst udp port BrMain,
 //                        -) ;
 
-ipc_br[0]
--> [0]MPCG;
+ipc_br[0] -> Discard;
+//-> [0]MPCG;
 
 up ::
 { [0]
@@ -110,6 +110,7 @@ down ::
     -> IPIn
     -> Print(downin, MAXLENGTH 28)
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+->Print(TCP)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     -> Print(downout, MAXLENGTH 28)
     -> IPOut(READONLY false, CHECKSUM true)
@@ -119,11 +120,15 @@ down ::
 ipc_br[1] 
 -> FlowStrip(28)
 -> up
+-> Print()
+-> GetIPAddress(16)
 -> srv_nic;
 
 ipc_br[2] -> Discard;
 
 srv_nic
--> [1]MPCG
+//-> [1]MPCG
+-> SetTCPChecksum()
 -> down
+-> UDPIPEncap(BrNIC:ip, BrMain ,182.248.136.171 ,30000, CHECKSUM true)
 -> br_nic;
