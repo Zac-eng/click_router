@@ -94,32 +94,38 @@ br_nic
 ipc_br[0] -> Discard;
 //-> [0]MPCG;
 
-up ::
-{ [0]
-    -> IPIn
-    -> Print(upin, MAXLENGTH 28)
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-    -> Print(upout, MAXLENGTH 28)
-    -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
-}
+//up ::
+//{ [0]
+//    -> IPIn
+//    -> Print(upin, MAXLENGTH 28)
+//    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
+//    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+//    -> Print(upout, MAXLENGTH 28)
+//    -> IPOut(READONLY false, CHECKSUM true)
+//    -> [0]
+//}
 
-down ::
-{ [0]
-    -> IPIn
-    -> Print(downin, MAXLENGTH 28)
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
-->Print(TCP)
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-    -> Print(downout, MAXLENGTH 28)
-    -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
-}
+//down ::
+//{ [0]
+//    -> IPIn
+//    -> Print(downin, MAXLENGTH 28)
+//    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+//->Print(TCP)
+//    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+//    -> Print(downout, MAXLENGTH 28)
+//    -> IPOut(READONLY false, CHECKSUM true)
+//    -> [0]
+//}
 
 ipc_br[1] 
 -> FlowStrip(28)
--> up
+//-> up
+    -> IPIn
+    -> Print(upin, MAXLENGTH 28)
+    -> uptIN :: TCPIn(FLOWDIRECTION 0, OUTNAME uptOUT, RETURNNAME downtIN, REORDER true)
+    -> uptOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> Print(upout, MAXLENGTH 28)
+    -> IPOut(READONLY false, CHECKSUM true)
 -> Print()
 -> GetIPAddress(16)
 -> srv_nic;
@@ -129,6 +135,13 @@ ipc_br[2] -> Discard;
 srv_nic
 //-> [1]MPCG
 -> SetTCPChecksum()
--> down
+//-> down
+    -> IPIn
+    -> Print(downin, MAXLENGTH 28)
+    -> downtIN :: TCPIn(FLOWDIRECTION 1, OUTNAME downtOUT, RETURNNAME uptIN, REORDER true)
+->Print(TCP)
+    -> downtOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> Print(downout, MAXLENGTH 28)
+    -> IPOut(READONLY false, CHECKSUM true)
 -> UDPIPEncap(BrNIC:ip, BrMain ,182.248.136.171 ,30000, CHECKSUM true)
 -> br_nic;
