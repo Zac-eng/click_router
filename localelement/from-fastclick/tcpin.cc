@@ -1217,6 +1217,7 @@ inline void TCPIn::releaseFcbSide(FlowControlBlock* fcb, fcb_tcpin* fcb_in) {
 inline void TCPIn::initializeFcbSyn(fcb_tcpin* fcb_in, const click_ip *iph , const click_tcp *tcph ) {
 
     IPFlowID flowID(iph->ip_src, tcph->th_sport, iph->ip_dst, tcph->th_dport);
+    click_chatter("init flowid: %d", flowID);
     //A pending reset or time out connection could exist so we use replace and free any existing entry if found
     tableFcbTcpCommon.insert(flowID, fcb_in->common, [this](tcp_common* &existing) {
         existing->lock.acquire();
@@ -1264,9 +1265,10 @@ bool TCPIn::assignTCPCommon(Packet *packet, bool keep_fct)
         // Get the struct allocated by the initiator, and remove it if found
         fcb_in->common = returnElement->getTCPCommon(flowID);
 
-        if (fcb_in->common == 0) //No matching connection
+        if (fcb_in->common == 0) { //No matching connection
+            click_chatter("common flow id: %d", flowID);
             return false;
-
+        }
         //No need to fcb_in->common->use_count++, we keep the reference that belonged to the table
 
         //click_chatter("Found %p", fcb_in->common);
