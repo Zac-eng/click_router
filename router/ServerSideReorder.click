@@ -98,6 +98,10 @@ up ::
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    
+    tIN[1] -> tOUT
+
+    tOUT
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
@@ -110,6 +114,10 @@ down ::
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+
+    tIN[1] -> tOUT
+
+    tOUT
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
