@@ -94,8 +94,9 @@ ipc_br[0] -> Discard;
 up ::
 { [0]
     -> IPIn
+    -> CheckIPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
@@ -105,8 +106,9 @@ up ::
 down ::
 { [0]
     -> IPIn
+    -> CheckIPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
