@@ -96,7 +96,13 @@ ipc_br[1]
 -> IPIn
 -> CheckIPHeader()
 -> StripIPHeader()
--> uptIN :: TCPIn(FLOWDIRECTION 0, OUTNAME uptOUT, RETURNNAME downtIN, REORDER true, VERBOSE 1)
+-> uptIN :: TCPIn(FLOWDIRECTION 0, OUTNAME uptOUT, RETURNNAME downtIN, REORDER true, VERBOSE 1);
+
+uptre :: SimpleTCPRetransmitter();
+uptIN[1] -> [0]uptre;
+uptIN[0] -> [1]uptre;
+
+uptre
 -> uptOUT :: TCPOut(READONLY false, CHECKSUM true)
 -> UnstripIPHeader()
 -> IPOut(READONLY false, CHECKSUM true)
@@ -109,14 +115,15 @@ srv_nic
 -> IPIn
 -> CheckIPHeader()
 -> StripIPHeader()
--> downtIN :: TCPIn(FLOWDIRECTION 1, OUTNAME downtOUT, RETURNNAME uptIN, REORDER true, VERBOSE 1)
+-> downtIN :: TCPIn(FLOWDIRECTION 1, OUTNAME downtOUT, RETURNNAME uptIN, REORDER true, VERBOSE 1);
+
+downtre :: SimpleTCPRetransmitter();
+downtIN[1] -> [0]downtre;
+downtIN[0] -> [1]downtre;
+
+downtre
 -> downtOUT :: TCPOut(READONLY false, CHECKSUM true)
 -> UnstripIPHeader()
 -> IPOut(READONLY false, CHECKSUM true)
 -> UDPIPEncap(BrNIC:ip, BrMain ,133.11.240.97 ,49799, CHECKSUM true)
 -> br_nic;
-
-uptre :: SimpleTCPRetransmitter();
-downtre :: SimpleTCPRetransmitter();
-uptIN[1] -> [1]uptre;
-downtIN[1] -> [1]downtre;
