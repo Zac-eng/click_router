@@ -87,61 +87,41 @@ br_nic
 -> ipc_br :: CTXDispatcher( 9/11 22/4E20 0,
                             9/11 22/4E21 1,
                             -);
-//-> ipc_br :: IPClassifier( dst udp port BrProve,
-//                        dst udp port BrMain,
-//                        -) ;
 
 ipc_br[0] -> Discard;
 //-> [0]MPCG;
 
-//up ::
-//{ [0]
-//    -> IPIn
-//    -> Print(upin, MAXLENGTH 28)
-//    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
-//    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-//    -> Print(upout, MAXLENGTH 28)
-//    -> IPOut(READONLY false, CHECKSUM true)
-//    -> [0]
-//}
-
-//down ::
-//{ [0]
-//    -> IPIn
-//    -> Print(downin, MAXLENGTH 28)
-//    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
-//->Print(TCP)
-//    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-//    -> Print(downout, MAXLENGTH 28)
-//    -> IPOut(READONLY false, CHECKSUM true)
-//    -> [0]
-//}
-
-ipc_br[1] 
--> FlowStrip(28)
-//-> up
+up ::
+{ [0]
     -> IPIn
-    -> Print(upin, MAXLENGTH 28)
-    -> uptIN :: TCPIn(FLOWDIRECTION 0, OUTNAME uptOUT, RETURNNAME downtIN, REORDER true)
-    -> uptOUT :: TCPOut(READONLY false, CHECKSUM true)
-    -> Print(upout, MAXLENGTH 28)
+    -> StripIPHeader()
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
--> Print()
--> GetIPAddress(16)
+    -> [0]
+}
+
+down ::
+{ [0]
+    -> IPIn
+    -> StripIPHeader()
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> UnstripIPHeader()
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [0]
+}
+
+ipc_br[1]
+-> FlowStrip(28)
+-> up
 -> srv_nic;
 
 ipc_br[2] -> Discard;
 
 srv_nic
 //-> [1]MPCG
--> SetTCPChecksum()
-//-> down
-    -> IPIn
-    -> Print(downin, MAXLENGTH 28)
-    -> downtIN :: TCPIn(FLOWDIRECTION 1, OUTNAME downtOUT, RETURNNAME uptIN, REORDER true)
-->Print(TCP)
-    -> downtOUT :: TCPOut(READONLY false, CHECKSUM true)
-    -> Print(downout, MAXLENGTH 28)
-    -> IPOut(READONLY false, CHECKSUM true)
--> UDPIPEncap(BrNIC:ip, BrMain ,182.248.136.171 ,30000, CHECKSUM true)
+-> down
+-> UDPIPEncap(BrNIC:ip, BrMain ,133.11.240.97 ,49799, CHECKSUM true)
 -> br_nic;
