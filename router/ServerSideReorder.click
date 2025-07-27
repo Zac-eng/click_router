@@ -125,7 +125,14 @@ down ::
 
 ipc_br[1]
 -> FlowStrip(28)
+-> content_c :: CTXDispatcher(9/06 0,
+                            -);
+
+content_c[0]
 -> up
+-> srv_nic;
+
+content_c[1]
 -> srv_nic;
 
 ipc_br[2] -> Discard;
