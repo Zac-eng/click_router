@@ -84,7 +84,7 @@ br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 
 br_nic
 -> CheckIPHeader()
--> ipc_br :: CTXDispatcher( 9/11 22/4E20 0,
+-> ipc_br :: CTXDispatcher( 9/11 22/4E21 0,
                             9/11 22/4E21 1,
                             -);
 

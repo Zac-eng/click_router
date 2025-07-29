@@ -2,12 +2,14 @@ define(
     $CltGWPort 30000,
     $SrvGWProbe 20000,
     $SrvGWMain 20001,   
+//    $SatNIC0 wlp3s0,
+//    $satgw0  172.20.10.1,
     $SatNIC0 enp1s0,
     $satgw0  10.11.254.254,
 //    $SatNIC1 enx3897a475d974,
     $SatNIC1 enp2s0,
     $satgw1  10.11.254.254,
-    $srvgw  54.248.178.241,
+    $srvgw  54.65.71.156,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -65,7 +67,11 @@ sat_nic1 -> Strip(14)
 -> GetIPAddress(16)
 -> loc_nic;
 
-rrs :: RoundRobinSwitch();
+rrs :: StrideSwitch(1, 1);
+//rrs :: {
+//    input[0] -> [1]output;
+//    Idle -> [0]output;
+//}
 
 loc_nic -> Strip(14) -> rrs;
 

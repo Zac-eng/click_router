@@ -58,7 +58,7 @@ sat_nic1 -> Strip(14)
 -> CheckIPHeader()
 -> loc_nic;
 
-rrs :: StrideSwitch(1, 1);
+rrs :: StrideSwitch(1, 0);
 //rrs :: {
 //    input[0] -> [1]output;
 //    Idle -> [0]output;
