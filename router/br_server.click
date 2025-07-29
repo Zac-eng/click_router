@@ -79,7 +79,7 @@ cl[2] -> Strip(14) -> rrs;
 c0[2] -> Strip(34) -> wanq :: Queue();
 c1[2] -> Strip(34) -> wanq;
 
-wanq -> uq -> [0]arpql;
+wanq -> uq -> CheckIPHeader() -> [0]arpql;
 
-rrs[0] -> IPEncap(50, $WAN0_IP, $WAN0_TARGET) -> DecIPTTL() -> [0]arpq0;
-rrs[1] -> IPEncap(50, $WAN1_IP, $WAN1_TARGET) -> DecIPTTL() -> [0]arpq1;
+rrs[0] -> IPEncap(50, $WAN0_IP, $WAN0_TARGET) -> DecIPTTL() -> CheckIPHeader() -> [0]arpq0;
+rrs[1] -> IPEncap(50, $WAN1_IP, $WAN1_TARGET) -> DecIPTTL() -> CheckIPHeader() -> [0]arpq1;
