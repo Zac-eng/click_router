@@ -50,7 +50,7 @@ arpql -> outl;
 arpq0 -> out0;
 arpq1 -> out1;
 
-arprl :: ARPResponder($LAN_IP $LAN_MAC,
+arprl :: ARPResponder($LAN_SUBN $LAN_MAC,
                     $WAN0_SUBN $LAN_MAC,
                     $WAN1_SUBN $LAN_MAC);
 arpr0 :: ARPResponder($WAN0_IP $WAN0_MAC,
