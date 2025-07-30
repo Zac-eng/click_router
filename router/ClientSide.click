@@ -5,11 +5,11 @@ define(
 //    $SatNIC0 wlp3s0,
 //    $satgw0  172.20.10.1,
     $SatNIC0 enp1s0,
-    $satgw0  10.11.254.254,
+    $satgw0  192.168.1.1,
 //    $SatNIC1 enx3897a475d974,
     $SatNIC1 enp2s0,
-    $satgw1  10.11.254.254,
-    $srvgw  54.65.71.156,
+    $satgw1  192.168.1.1,
+    $srvgw  3.112.34.91,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -69,8 +69,8 @@ sat_nic1 -> Strip(14)
 
 rrs :: StrideSwitch(1, 1);
 //rrs :: {
-//    input[0] -> [1]output;
-//    Idle -> [0]output;
+//    input[0] -> [0]output;
+//    Idle -> [1]output;
 //}
 
 loc_nic -> Strip(14) -> rrs;
