@@ -90,8 +90,8 @@ elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
     -> SetIPAddress($gwip)
     -> Receiver($host, $hostnic, $arpnet)
     -> CheckIPHeader()
-    -> ipc_br :: CTXDispatcher( 9/11 22/4E21 0, -)
-    -> annotator
+    -> ipc_br :: CTXDispatcher( 9/11 22/4E21 0, -)[0]
+    -> [0]annotator[0]
     -> FlowStrip(28)
     -> [0]output;
 
@@ -103,8 +103,6 @@ br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, br_fhp);
 
 br_nic
 -> uptcp :: TCPSplitter;
-
-ipc_br[1] -> Discard;
 
 up ::
 { [0]
