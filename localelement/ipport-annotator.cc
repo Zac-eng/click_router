@@ -24,8 +24,11 @@ void IPPortAnnotator::push_batch(int port, PacketBatch *batch) {
     }
     checked_output_push_batch(0, batch);
   } else if (port == 1) {
-    if (_stored_info.ip == 0) batch->kill();
     FOR_EACH_PACKET(batch, p) {
+      if (_stored_info.ip == 0) {
+        p->kill();
+        continue;
+      }
       WritablePacket *wp = p->uniqueify();
       if (!wp) continue;
       wp->set_dst_ip_anno(_stored_info.ip);
