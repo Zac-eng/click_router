@@ -85,25 +85,23 @@ elementclass Receiver {$host, $hostnic, $arpnet |
 
 elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
     input[0]
-    -> [1]annotator[1]
+    -> [1]annotator :: IPPortAnnotator[1]
     -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
     -> SetIPAddress($gwip)
-    -> Receiver($host, $hostnic, $arpnet) -> [0]output;
+    -> Receiver($host, $hostnic, $arpnet)
+    -> CheckIPHeader()
+    -> ipc_br :: CTXDispatcher( 9/11 22/4E21 0, -)
+    -> annotator
+    -> FlowStrip(28)
+    -> [0]output;
+
+    ipc_br[1] -> Discard
 }
 
 srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
 br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, br_fhp);
 
-annotator :: IPPortAnnotator();
-
 br_nic
--> CheckIPHeader()
--> ipc_br :: CTXDispatcher( 9/11 22/4E21 0,
-                            -);
-
-ipc_br[0]
--> [0]annotator[0]
--> FlowStrip(28)
 -> uptcp :: TCPSplitter;
 
 ipc_br[1] -> Discard;
