@@ -84,7 +84,11 @@ elementclass Receiver {$host, $hostnic, $arpnet |
 }
 
 elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
-    input[0] -> SetIPAddress($gwip) -> Receiver($host, $hostnic, $arpnet) -> [0]output;
+    input[0]
+    -> [1]annotator[1]
+    -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
+    -> SetIPAddress($gwip)
+    -> Receiver($host, $hostnic, $arpnet) -> [0]output;
 }
 
 srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
@@ -148,11 +152,7 @@ srv_nic
 
 downtcp[0]
 -> down
--> [1]annotator[1]
--> UDPIPEncapAnno(BrNIC:ip, BrMain ,CHECKSUM true)
 -> br_nic;
 
 downtcp[1]
--> [1]annotator[1]
--> UDPIPEncapAnno(BrNIC:ip, BrMain ,CHECKSUM true)
 -> br_nic;
