@@ -90,12 +90,15 @@ elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
 srv_nic :: Receiver(SrvNIC, $SrvNIC, arploc);
 br_nic :: GlobalReceiver(BrNIC, $BrNIC, BrNIC:ip, br_fhp);
 
+annotator :: IPPortAnnotator();
+
 br_nic
 -> CheckIPHeader()
 -> ipc_br :: CTXDispatcher( 9/11 22/4E21 0,
                             -);
 
 ipc_br[0]
+-> [0]annotator[0]
 -> FlowStrip(28)
 -> uptcp :: TCPSplitter;
 
@@ -145,9 +148,11 @@ srv_nic
 
 downtcp[0]
 -> down
--> UDPIPEncap(BrNIC:ip, BrMain ,133.11.240.97 ,49799, CHECKSUM true)
+-> [1]annotator[1]
+-> UDPIPEncapAnno(BrNIC:ip, BrMain ,CHECKSUM true)
 -> br_nic;
 
 downtcp[1]
--> UDPIPEncap(BrNIC:ip, BrMain ,133.11.240.97 ,49799, CHECKSUM true)
+-> [1]annotator[1]
+-> UDPIPEncapAnno(BrNIC:ip, BrMain ,CHECKSUM true)
 -> br_nic;
