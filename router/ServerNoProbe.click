@@ -85,12 +85,14 @@ elementclass Receiver {$host, $hostnic, $arpnet |
 
 elementclass GlobalReceiver {$host, $hostnic, $arpnet, $gwip|
     input[0]
+    -> CTXManager()
     -> [1]annotator :: IPPortAnnotator[1]
     -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
     -> SetIPAddress($gwip)
     -> Receiver($host, $hostnic, $arpnet)
     -> CheckIPHeader()
     -> ipc_br :: CTXDispatcher( 9/11 22/4E21 0, -)[0]
+    -> CTXManager()
     -> [0]annotator[0]
     -> FlowStrip(28)
     -> [0]output;
