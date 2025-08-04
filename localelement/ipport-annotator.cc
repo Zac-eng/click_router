@@ -33,7 +33,6 @@ void IPPortAnnotator::push_batch(int port, PacketBatch *batch) {
       if (!wp) continue;
       wp->set_dst_ip_anno(_stored_info.ip);
       wp->set_anno_u16(UDP_DPORT_ANNO, _stored_info.port);
-      click_chatter("Annotated packet with IP: %x, port: %u", _stored_info.ip, _stored_info.port);
     }
     checked_output_push_batch(1, batch);
   }
