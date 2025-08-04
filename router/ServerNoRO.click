@@ -45,7 +45,6 @@ tab :: ARPTable
 
 elementclass Receiver {$host, $hostnic, $arpnet |
     input[0]
-    -> GetIPAddress(16)
     -> arpq :: ARPQuerier($host:ip, $host:eth, TABLE tab)
     -> etherOUT :: Null
 
@@ -108,16 +107,20 @@ br_nic
 -> uptcp :: TCPSplitter;
 
 uptcp[0]
+-> GetIPAddress(16)
 -> srv_nic;
 
 uptcp[1]
+-> GetIPAddress(16)
 -> srv_nic;
 
 srv_nic
 -> downtcp :: TCPSplitter;
 
 downtcp[0]
+-> GetIPAddress(16)
 -> br_nic;
 
 downtcp[1]
+-> GetIPAddress(16)
 -> br_nic;
