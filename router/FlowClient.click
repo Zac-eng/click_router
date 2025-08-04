@@ -118,14 +118,20 @@ up ::
     -> CheckIPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> Discard
+    tIN[1] -> [1]retrans
 
-    tOUT
+    tOUT[0]
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
+    -> [0];
+
+    tOUT[1]
+    -> UnstripIPHeader()
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
 }
 
 down ::
@@ -134,16 +140,20 @@ down ::
     -> CheckIPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 0)
-    -> t :: Tee(2)
-    -> retrans :: TCPRetransmitter(PROACK 1) -> [1];
+    -> retrans :: TCPRetransmitter(PROACK 1)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
     tIN[1] -> [1]retrans
 
-    t[1]
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    tOUT
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
+    -> [0];
+
+    tOUT[1]
+    -> UnstripIPHeader()
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
 }
 
 rrs :: StrideSwitch(1, 1);
@@ -163,6 +173,9 @@ sat_nic1[1]
 down
 -> loc_nic;
 
+down[1]
+-> rrs;
+
 loc_nic
 -> uptcp :: TCPSplitter;
 
@@ -173,8 +186,8 @@ uptcp[0]
 uptcp[1]
 -> rrs;
 
-down[1]
--> rrs;
+up[1]
+-> loc_nic;
 
 rrs[0]
 -> UDPIPEncap(SatNIC0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
