@@ -1,12 +1,12 @@
 define(
     $CltGWPort 30000,
     $SrvGWProbe 20000,
-    $SrvGWMain 20001,   
-    $SatNIC0 enp1s0,
-    $satgw0  192.168.1.1,
+    $SrvGWMain 20001,
+    $SatNIC0 wlp3s0,
+    $satgw0  10.18.254.254,
     $SatNIC1 enp2s0,
-    $satgw1  192.168.1.1,
-    $srvgw  3.112.34.91,
+    $satgw1  10.11.254.254,
+    $srvgw  3.112.15.188,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -117,10 +117,10 @@ up ::
     -> IPIn
     -> CheckIPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1)
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-    
-    tIN[1] -> tOUT
+
+    tIN[1] -> Discard
 
     tOUT
     -> UnstripIPHeader()
@@ -133,38 +133,47 @@ down ::
     -> IPIn
     -> CheckIPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 0)
+    -> t :: Tee(2)
+    -> retrans :: TCPRetransmitter(PROACK 1) -> [1];
+
+    tIN[1] -> [1]retrans
+
+    t[1]
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-
-    tIN[1] -> tOUT
-
-    tOUT
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
 }
 
-rrs :: RoundRobinSwitch();
+rrs :: StrideSwitch(1, 1);
 
 sat_nic0[0]
 -> down;
+sat_nic0[1]
+-> CheckIPHeader()
+-> loc_nic;
+
 sat_nic1[0]
 -> down;
-down
--> loc_nic;
-sat_nic0[1]
--> loc_nic;
 sat_nic1[1]
+-> CheckIPHeader()
+-> loc_nic;
+
+down
 -> loc_nic;
 
 loc_nic
--> downtcp :: TCPSplitter;
+-> uptcp :: TCPSplitter;
 
-downtcp[0]
+uptcp[0]
 -> up
 -> rrs;
 
-downtcp[1]
+uptcp[1]
+-> rrs;
+
+down[1]
 -> rrs;
 
 rrs[0]

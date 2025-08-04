@@ -111,12 +111,14 @@ up ::
     -> IPIn
     -> CheckIPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1)
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
+    -> t :: Tee(2)
+    -> retrans :: TCPRetransmitter(PROACK 1) -> [1];
     
-    tIN[1] -> tOUT
+    tIN[1] -> retrans
 
-    tOUT
+    t[1]
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
@@ -127,10 +129,10 @@ down ::
     -> IPIn
     -> CheckIPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 0)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> tOUT
+    tIN[1] -> Discard
 
     tOUT
     -> UnstripIPHeader()
@@ -144,6 +146,8 @@ uptcp[0]
 
 uptcp[1]
 -> srv_nic;
+
+up[1] -> br_nic;
 
 srv_nic
 -> downtcp :: TCPSplitter;
