@@ -120,7 +120,12 @@ up ::
     tOUT
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
+    -> [0];
+
+    tOUT[1]
+    -> UnstripIPHeader()
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
 }
 
 down ::
@@ -143,10 +148,11 @@ uptcp[0]
 -> up
 -> srv_nic;
 
+up[1]
+-> br_nic;
+
 uptcp[1]
 -> srv_nic;
-
-up[1] -> br_nic;
 
 srv_nic
 -> downtcp :: TCPSplitter;
