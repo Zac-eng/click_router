@@ -115,7 +115,7 @@ up ::
     -> retrans :: TCPRetransmitter(PROACK 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     
-    tIN[1] -> retrans
+    tIN[1] -> [1]retrans
 
     tOUT
     -> UnstripIPHeader()
