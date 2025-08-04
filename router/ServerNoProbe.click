@@ -112,13 +112,12 @@ up ::
     -> CheckIPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
-    -> t :: Tee(2)
-    -> retrans :: TCPRetransmitter(PROACK 1) -> [1];
+    -> retrans :: TCPRetransmitter(PROACK 1)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     
     tIN[1] -> retrans
 
-    t[1]
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+    tOUT
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0]
