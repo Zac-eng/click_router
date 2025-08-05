@@ -118,10 +118,11 @@ up ::
     -> CheckIPHeader()
     -> CheckTCPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1, RETRANSMIT_PT 1)
+    -> retrans :: TCPRetransmitter()
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> tOUT
+    tIN[1] -> Print(down-retrans)-> [1]retrans
 
     tOUT[0]
     -> UnstripIPHeader()
@@ -140,10 +141,11 @@ down ::
     -> CheckIPHeader()
     -> CheckTCPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 0)
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1, RETRANSMIT_PT 1)
+    -> retrans :: TCPRetransmitter()
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-tIN[1] -> tOUT
+tIN[1] -> Print(down-retrans)-> [1]retrans
 
 
     tOUT
