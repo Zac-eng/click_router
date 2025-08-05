@@ -112,10 +112,11 @@ up ::
     -> CheckIPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
-    -> retrans :: TCPRetransmitter(VERBOSE 1)
+//    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
     
-    tIN[1] -> [1]retrans
+    tIN[1]->tOUT
+//    tIN[1] -> [1]retrans
 
     tOUT
     -> UnstripIPHeader()
@@ -134,10 +135,11 @@ down ::
     -> CheckIPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 0)
-    -> retrans :: TCPRetransmitter(VERBOSE 1)
+//    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> [1]retrans
+    tIN[1]->tOUT
+//    tIN[1] -> [1]retrans
 
     tOUT[0]
     -> UnstripIPHeader()
@@ -169,3 +171,6 @@ downtcp[0]
 
 downtcp[1]
 -> br_nic;
+
+down[1]
+-> srv_nic;

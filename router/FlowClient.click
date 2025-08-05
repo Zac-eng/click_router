@@ -6,7 +6,7 @@ define(
     $satgw0  10.18.254.254,
     $SatNIC1 enp2s0,
     $satgw1  10.11.254.254,
-    $srvgw  3.112.15.188,
+    $srvgw  43.207.235.47,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -116,12 +116,12 @@ up ::
 { [0]
     -> IPIn
     -> CheckIPHeader()
+    -> CheckTCPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 0)
-    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> [1]retrans
+    tIN[1] -> tOUT
 
     tOUT[0]
     -> UnstripIPHeader()
@@ -138,12 +138,13 @@ down ::
 { [0]
     -> IPIn
     -> CheckIPHeader()
+    -> CheckTCPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 0)
-    -> retrans :: TCPRetransmitter(PROACK 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> [1]retrans
+tIN[1] -> tOUT
+
 
     tOUT
     -> UnstripIPHeader()
@@ -156,7 +157,7 @@ down ::
     -> [1];
 }
 
-rrs :: StrideSwitch(1, 1);
+rrs :: StrideSwitch(0, 1);
 
 sat_nic0[0]
 -> down;
