@@ -88,10 +88,6 @@ down ::
 }
 
 br_nic
--> Strip(14)
-
-
-ipc_br[0]
 -> upfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
 -> usplit :: CTXDispatcher(9/06, -);
 
@@ -99,6 +95,7 @@ ipc_br[1] -> Discard;
 
 usplit[0] -> up -> srv_nic;
 usplit[1] -> CheckIPHeader() -> srv_nic;
+up[1] -> br_nic;
 
 srv_nic
 -> Strip(14)
@@ -107,3 +104,4 @@ srv_nic
 
 dsplit[0] -> down -> br_nic;
 dsplit[1] -> br_nic;
+down[1] -> srv_nic;
