@@ -116,7 +116,10 @@ up ::
 //    -> retrans :: TCPRetransmitter(PROACK 1, VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-tIN[1]->Print(up-ret)->Discard;
+    tIN[1]
+    -> Print(up-ret)
+    -> UnstripIPHeader()
+    -> IPOut(READONLY false, CHECKSUM true)->[1];
 //    tIN[1] -> [2];
 
     tOUT[0]
@@ -140,7 +143,10 @@ down ::
 //    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true);
 
-    tIN[1] -> Print(down-retrans)-> Discard;
+    tIN[1]
+    -> Print(up-ret)
+    -> UnstripIPHeader()
+    -> IPOut(READONLY false, CHECKSUM true)->[1];
 //[1] -> [1]retrans;
 
     tOUT
