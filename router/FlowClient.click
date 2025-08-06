@@ -118,12 +118,13 @@ up ::
     -> CheckIPHeader()
     -> CheckTCPHeader()
     -> StripIPHeader()
+    -> Print
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1, PROACK 0)
     -> UnstripIPHeader()
     -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> UnstripIPHeader() -> [1]retrans;
+    tIN[1] -> UnstripIPHeader() -> Print(upin1) -> [1]retrans;
 
     tOUT
     -> IPOut(READONLY false, CHECKSUM true)
@@ -140,12 +141,13 @@ down ::
     -> CheckIPHeader()
     -> CheckTCPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
+    -> Print()
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1, PROACK 0)
     -> UnstripIPHeader()
     -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> UnstripIPHeader() -> [1]retrans;
+    tIN[1] -> UnstripIPHeader() -> Print(downin1) -> [1]retrans;
 
     tOUT
     -> IPOut(READONLY false, CHECKSUM true)
@@ -159,13 +161,17 @@ down ::
 rrs :: StrideSwitch(0, 1);
 
 sat_nic0[0]
+-> Print(intodown)
 -> down;
+
 sat_nic0[1]
 -> CheckIPHeader()
 -> loc_nic;
 
 sat_nic1[0]
+-> Print(intodown)
 -> down;
+
 sat_nic1[1]
 -> CheckIPHeader()
 -> loc_nic;

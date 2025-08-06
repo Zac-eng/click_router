@@ -16,85 +16,94 @@ PortInfo(
     BrMain $BrMain
 )
 
-// ControlSocket(unix, /tmp/ntnl5g)
-
 elementclass LocalNIC {$host, $hostnic, $arpnet|
     FromDevice($hostnic) -> c:: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800, -);
-    // Arp Request
     c[0] -> ARPResponder($arpnet $host:eth) -> q:: Queue -> ToDevice($hostnic);
-    // Arp Response
     c[1] -> [1]aq:: ARPQuerier($host:ip, $host:eth) -> q;
-    // ip packet from host
     c[2] -> [0]output;
     c[3] -> Discard;
-    // ip packet to host
     input[0] -> aq;
     aq[1] -> q;    
 }
 
 elementclass GlobalNIC {$host, $hostnic, $arpnet, $gwip|
-    input[0] -> SetIPAddress($gwip) -> LocalNIC($host, $hostnic, $arpnet) -> [0]output;
+    input[0]
+    -> [1]annotator :: IPPortAnnotator[1]
+    -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
+    -> SetIPAddress($gwip)
+    -> LocalNIC($host, $hostnic, $arpnet)
+    -> ipc_br :: Classifier(9/11 22/4E21, -)[0]
+    -> [0]annotator[0]
+    -> Strip(28)
+    -> [0]output;
+
+    ipc_br[1] -> Discard;
 }
 
-MPCG:: MultiPathGatewayServerSide(BrNIC:ip, BrProve, COM_TYPE SAT );
-
-//br_todevice :: LocalTD(BrNIC, $BrNIC);
 br_nic :: GlobalNIC(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
-//srv_todevice :: LocalTD(SrvNIC, $SrvNIC);
 srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
-
-// ********  Bridge Network
-Idle -> br_nic;
-// FromDevice($BrNIC) 
-// -> c_br :: Classifier(12/0806 20/0002, 12/0800, -); 
-// c_br[0] -> [1]br_todevice;
-br_nic -> CheckIPHeader(OFFSET 14) -> Strip(14) ->
-ipc_br :: IPClassifier( dst udp port BrProve,
-                        dst udp port BrMain,
-                        -) ;
-// Probe packet
-ipc_br[0] -> 
-// Print(Probe, 40) -> 
-[0]MPCG;
-
-MPCG -> 
-// Print(Encap, 40) -> 
-GetIPAddress(16) -> br_nic;
-
-// Capsulation packet
-ipc_br[1] 
--> Strip (28) 
--> ipc :: Classifier( 9/06 , - );
 
 up ::
 { [0]
+    -> CheckIPHeader()
     -> IPIn
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true)
+    -> CheckTCPHeader()
+    -> StripIPHeader()
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+
+    tIN[1] -> UnstripIPHeader() -> Print(upin1) -> [1]retrans;
+
+    tOUT
     -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
+    -> [0];
+
+    tOUT[1]
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
 }
 
 down ::
 { [0]
+    -> CheckIPHeader()
     -> IPIn
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true)
+    -> CheckTCPHeader()
+    -> StripIPHeader()
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+
+    tIN[1] -> UnstripIPHeader() -> Print(downin1) -> [1]retrans;
+
+    tOUT
     -> IPOut(READONLY false, CHECKSUM true)
-    -> [0]
+    -> [0];
+
+    tOUT[1]
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
 }
 
-ipc[0]
--> up
--> srv_nic;
+br_nic
+-> Strip(14)
 
-ipc[1]
--> srv_nic;
 
-//etc
-ipc_br[2] -> Discard;
+ipc_br[0]
+-> upfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
+-> usplit :: CTXDispatcher(9/06, -);
+
+ipc_br[1] -> Discard;
+
+usplit[0] -> up -> srv_nic;
+usplit[1] -> CheckIPHeader() -> srv_nic;
 
 srv_nic
 -> Strip(14)
--> down
--> [1]MPCG;
+-> downfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
+-> dsplit :: CTXDispatcher(9/06, -);
+
+dsplit[0] -> down -> br_nic;
+dsplit[1] -> br_nic;
