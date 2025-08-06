@@ -110,25 +110,19 @@ up ::
 { [0]
     -> IPIn
     -> CheckIPHeader()
-    -> CheckTCPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1)
-//    -> retrans :: TCPRetransmitter(PROACK 1, VERBOSE 1)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1]
-    -> Print(up-ret)
-    -> tOUT;
-//    tIN[1] -> [2];
+    tIN[1] -> UnstripIPHeader() -> [1]retrans;
 
-    tOUT[0]
-    -> UnstripIPHeader()
+    tOUT
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0];
-    
+
     tOUT[1]
-    -> Print(up-forged)
-    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [1];
 }
@@ -140,27 +134,20 @@ down ::
     -> CheckTCPHeader()
     -> StripIPHeader()
     -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
-//    -> retrans :: TCPRetransmitter(VERBOSE 1)
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true);
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1]
-    -> Print(down-ret)
-    tOUT;
-//[1] -> [1]retrans;
+    tIN[1] -> UnstripIPHeader() -> [1]retrans;
 
     tOUT
-    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0];
 
     tOUT[1]
-    -> Print(down-forged)
-    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [1];
 }
-
-//up[2]->[1]down;
 
 uptcp[0]
 -> up

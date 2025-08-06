@@ -6,7 +6,7 @@ define(
     $satgw0  10.18.254.254,
     $SatNIC1 enp2s0,
     $satgw1  10.11.254.254,
-    $srvgw  43.207.235.47,
+    $srvgw  13.231.243.217,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -118,19 +118,18 @@ up ::
     -> CheckIPHeader()
     -> CheckTCPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1, RETRANSMIT_PT 1)
-    -> retrans :: TCPRetransmitter()
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1, PROACK 0)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-    tIN[1] -> Print(down-retrans)-> [1]retrans
+    tIN[1] -> UnstripIPHeader() -> [1]retrans;
 
-    tOUT[0]
-    -> UnstripIPHeader()
+    tOUT
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0];
 
     tOUT[1]
-    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [1];
 }
@@ -141,20 +140,18 @@ down ::
     -> CheckIPHeader()
     -> CheckTCPHeader()
     -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1, RETRANSMIT_PT 1)
-    -> retrans :: TCPRetransmitter()
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-tIN[1] -> Print(down-retrans)-> [1]retrans
-
+    tIN[1] -> UnstripIPHeader() -> [1]retrans;
 
     tOUT
-    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [0];
 
     tOUT[1]
-    -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [1];
 }
