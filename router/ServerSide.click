@@ -28,12 +28,13 @@ elementclass LocalNIC {$host, $hostnic, $arpnet|
 
 elementclass GlobalNIC {$host, $hostnic, $arpnet, $gwip|
     input[0]
-    -> [1]annotator :: IPPortAnnotator[1]
-    -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
+//    -> [1]annotator :: IPPortAnnotator[1]
+//    -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
+    -> UDPIPEncap($host:ip, BrMain, , , CHECKSUM true)
     -> SetIPAddress($gwip)
     -> LocalNIC($host, $hostnic, $arpnet)
     -> ipc_br :: Classifier(9/11 22/4E21, -)[0]
-    -> [0]annotator[0]
+//    -> [0]annotator[0]
     -> Strip(28)
     -> [0]output;
 
@@ -90,8 +91,6 @@ down ::
 br_nic
 -> upfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
 -> usplit :: CTXDispatcher(9/06, -);
-
-ipc_br[1] -> Discard;
 
 usplit[0] -> up -> srv_nic;
 usplit[1] -> CheckIPHeader() -> srv_nic;
