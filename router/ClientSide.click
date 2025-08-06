@@ -1,15 +1,12 @@
 define(
     $CltGWPort 30000,
     $SrvGWProbe 20000,
-    $SrvGWMain 20001,   
-//    $SatNIC0 wlp3s0,
-//    $satgw0  172.20.10.1,
-    $SatNIC0 enp1s0,
-    $satgw0  192.168.1.1,
-//    $SatNIC1 enx3897a475d974,
+    $SrvGWMain 20001,
+    $SatNIC0 wlp3s0,
+    $satgw0  10.18.254.254,
     $SatNIC1 enp2s0,
-    $satgw1  192.168.1.1,
-    $srvgw  3.112.34.91,
+    $satgw1  10.11.254.254,
+    $srvgw  13.231.243.217,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -48,24 +45,72 @@ sat_nic0 :: GlobalNIC(SatSrc0, $SatNIC0, SatSrc0:ip, satgw0);
 sat_nic1 :: GlobalNIC(SatSrc1, $SatNIC1, SatSrc1:ip, satgw1);
 loc_nic :: LocalNIC(LocNIC, $LocNIC, arploc);
 
-TimedSource(INTERVAL 1.0, DATA "0000") -> StoreData(0, \<0a000000>) ->beacon_t :: Tee()
--> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWProbe, CHECKSUM true)
--> sat_nic0;
+up ::
+{ [0]
+    -> CheckIPHeader()
+    -> IPIn
+    -> CheckTCPHeader()
+    -> StripIPHeader()
+    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1, PROACK 0)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
 
-sat_nic0 -> Strip(14)  
--> Strip(28) -> CheckIPHeader()
--> GetIPAddress(16)  //Set ip annotation for arp
+    tIN[1] -> UnstripIPHeader() -> Print(upin1) -> [1]retrans;
+
+    tOUT
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [0];
+
+    tOUT[1]
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
+}
+
+down ::
+{ [0]
+    -> CheckIPHeader()
+    -> IPIn
+    -> CheckTCPHeader()
+    -> StripIPHeader()
+    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1, PROACK 0)
+    -> UnstripIPHeader()
+    -> retrans :: TCPRetransmitter(VERBOSE 1)
+    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
+
+    tIN[1] -> UnstripIPHeader() -> Print(downin1) -> [1]retrans;
+
+    tOUT
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [0];
+
+    tOUT[1]
+    -> IPOut(READONLY false, CHECKSUM true)
+    -> [1];
+}
+
+sat_nic0 -> Strip(14)
+-> sat0_cl :: Classifier(9/11 22/7530, -)
+-> Strip(28)
+-> downfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
+-> dsplit :: CTXDispatcher(9/06, -);
+
+sat0_cl[1]->Discard;
+
+dsplit[0]
+-> CheckIPHeader()
+-> down;
+
+dsplit[1]
+-> CheckIPHeader()
 -> loc_nic;
 
-beacon_t[1] 
--> StoreData(0,\<14>)
--> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWProbe, CHECKSUM true)
--> sat_nic1;
+sat_nic1 -> Strip(14)
+-> sat1_cl :: Classifier(9/11 22/7530, -)
+-> Strip(28)
+-> downfc;
 
-sat_nic1 -> Strip(14)  
--> Strip(28) -> CheckIPHeader()
--> GetIPAddress(16)
--> loc_nic;
+sat1_cl[1]->Discard;
 
 rrs :: StrideSwitch(1, 1);
 //rrs :: {
@@ -73,7 +118,21 @@ rrs :: StrideSwitch(1, 1);
 //    Idle -> [1]output;
 //}
 
-loc_nic -> Strip(14) -> rrs;
+loc_nic
+-> Strip(14)
+-> upfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
+-> upsplit :: CTXDispatcher(9/06, -);
+
+upsplit[0]
+-> up;
+
+upsplit[1]
+-> rrs;
+
+up -> rrs;
+up[1] -> loc_nic;
+down -> loc_nic;
+down[1] -> rrs;
 
 rrs[0]
 -> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
@@ -82,5 +141,3 @@ rrs[0]
 rrs[1]
 -> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> sat_nic1;
-
-Idle -> loc_nic;
