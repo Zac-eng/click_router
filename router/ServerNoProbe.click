@@ -118,8 +118,7 @@ up ::
 
     tIN[1]
     -> Print(up-ret)
-    -> UnstripIPHeader()
-    -> IPOut(READONLY false, CHECKSUM true)->[1];
+    -> tOUT;
 //    tIN[1] -> [2];
 
     tOUT[0]
@@ -128,6 +127,7 @@ up ::
     -> [0];
     
     tOUT[1]
+    -> Print(up-forged)
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [1];
@@ -144,9 +144,8 @@ down ::
     -> tOUT :: TCPOut(READONLY false, CHECKSUM true);
 
     tIN[1]
-    -> Print(up-ret)
-    -> UnstripIPHeader()
-    -> IPOut(READONLY false, CHECKSUM true)->[1];
+    -> Print(down-ret)
+    tOUT;
 //[1] -> [1]retrans;
 
     tOUT
@@ -155,6 +154,7 @@ down ::
     -> [0];
 
     tOUT[1]
+    -> Print(down-forged)
     -> UnstripIPHeader()
     -> IPOut(READONLY false, CHECKSUM true)
     -> [1];
