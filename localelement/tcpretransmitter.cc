@@ -81,8 +81,8 @@ TCPRetransmitter::forward_packets(fcb_transmit_buffer* fcb, PacketBatch* batch) 
     /**
      * Just prune the buffer and put the packet with payload in the list (don't buffer ACKs)
      */
-    prune(fcb);
 
+    prune(fcb);
     FOR_EACH_PACKET_SAFE(batch,packet) {
         if (getPayloadLength(packet) == 0)
             continue;
@@ -119,7 +119,6 @@ TCPRetransmitter::push_flow(int port, fcb_transmit_buffer* fcb, PacketBatch *bat
         output_push_batch(0, batch);
         return;
     }
-
     if(port == 0) { //Normal packet to buffer
         forward_packets(fcb, batch);
     } else { /* port == 1 */ //Retransmission
@@ -221,6 +220,7 @@ inline void TCPRetransmitter::prune(fcb_transmit_buffer* fcb)
 {
     if (!_in->fcb_data()->common->lastAckReceivedSet())
         return;
+
     tcp_seq_t seq = _in->fcb_data()->common->getLastAckReceived(_in->getOppositeFlowDirection());
     tcp_seq_t next_seq = fcb->first_unacked_seq;
     Packet* next = fcb->first_unacked->first();
@@ -229,7 +229,14 @@ inline void TCPRetransmitter::prune(fcb_transmit_buffer* fcb)
     Packet* last = 0;
     int count = 0;
 //    tcp_seq_t lastSeq = 0;
-    while (next && (SEQ_LT(getSequenceNumber(next),seq))) {
+    // click_chatter("before get seq, %p", next->data());
+    // if (next != nullptr) {
+    //     // click_chatter("tcp header: %p",next->tcp_header());
+    //     if (next->tcp_header() != nullptr)
+    //         // click_chatter("last ack: %u, seq: %u",ntohl(seq), next->tcp_header()->th_seq);
+    // }
+
+    while (next != nullptr && next->tcp_header() != nullptr && (SEQ_LT(getSequenceNumber(next),seq))) {
 /*        if (lastSeq) {
         if (!SEQ_GT(getSequenceNumber(next), lastSeq)) {
             click_chatter("new %lu <= %lu",getSequenceNumber(next), lastSeq);
@@ -241,6 +248,7 @@ inline void TCPRetransmitter::prune(fcb_transmit_buffer* fcb)
         count++;
         next = next->next();
     }
+// click_chatter("next: %d", count);
     if (count) {
         PacketBatch* second = 0;
         //click_chatter("Pruning %d (last received %lu, last was %lu)",count,_in->fcb_data()->common->getLastAckReceived(_in->getOppositeFlowDirection()),getSequenceNumber(last));
@@ -249,9 +257,13 @@ inline void TCPRetransmitter::prune(fcb_transmit_buffer* fcb)
         SFCB_STACK(
             fcb->first_unacked->fast_kill();
         );
+    // click_chatter("killed");
+
         fcb->first_unacked = second;
         if (second)
             fcb->first_unacked_seq = getSequenceNumber(second->first());
+    // click_chatter("first unacked");
+
     }
 }
 
