@@ -45,99 +45,38 @@ sat_nic0 :: GlobalNIC(SatSrc0, $SatNIC0, SatSrc0:ip, satgw0);
 sat_nic1 :: GlobalNIC(SatSrc1, $SatNIC1, SatSrc1:ip, satgw1);
 loc_nic :: LocalNIC(LocNIC, $LocNIC, arploc);
 
-up ::
-{ [0]
-    -> CheckIPHeader()
-    -> IPIn
-    -> CheckTCPHeader()
-    -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 0, OUTNAME up/tOUT, RETURNNAME down/tIN, REORDER true, VERBOSE 1, PROACK 0)
-    -> UnstripIPHeader()
-    -> retrans :: TCPRetransmitter(VERBOSE 1)
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-
-    tIN[1] -> UnstripIPHeader() -> Print(upin1) -> [1]retrans;
-
-    tOUT
-    -> IPOut(READONLY false, CHECKSUM true)
-    -> [0];
-
-    tOUT[1]
-    -> IPOut(READONLY false, CHECKSUM true)
-    -> [1];
-}
-
-down ::
-{ [0]
-    -> CheckIPHeader()
-    -> IPIn
-    -> CheckTCPHeader()
-    -> StripIPHeader()
-    -> tIN :: TCPIn(FLOWDIRECTION 1, OUTNAME down/tOUT, RETURNNAME up/tIN, REORDER true, VERBOSE 1, PROACK 0)
-    -> UnstripIPHeader()
-    -> retrans :: TCPRetransmitter(VERBOSE 1)
-    -> tOUT :: TCPOut(READONLY false, CHECKSUM true)
-
-    tIN[1] -> UnstripIPHeader() -> Print(downin1) -> [1]retrans;
-
-    tOUT
-    -> IPOut(READONLY false, CHECKSUM true)
-    -> [0];
-
-    tOUT[1]
-    -> IPOut(READONLY false, CHECKSUM true)
-    -> [1];
-}
-
-sat_nic0 -> Strip(14)
+sat_nic0
+-> Strip(14)
 -> sat0_cl :: Classifier(9/11 22/7530, -)
 -> Strip(28)
--> downfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
--> dsplit :: CTXDispatcher(9/06, -);
-
-sat0_cl[1]->Discard;
-
-dsplit[0]
--> CheckIPHeader()
--> down;
-
-dsplit[1]
 -> CheckIPHeader()
 -> loc_nic;
 
-sat_nic1 -> Strip(14)
+sat0_cl[1] -> Discard;
+
+sat_nic1
+-> Strip(14)
 -> sat1_cl :: Classifier(9/11 22/7530, -)
 -> Strip(28)
--> downfc;
+-> CheckIPHeader()
+-> loc_nic;
 
 sat1_cl[1]->Discard;
 
-rrs :: StrideSwitch(1, 1);
-//rrs :: {
+switch :: StrideSwitch(1, 1);
+//switch :: {
 //    input[0] -> [0]output;
 //    Idle -> [1]output;
 //}
 
 loc_nic
 -> Strip(14)
--> upfc :: CTXManager(BUILDER 1, AGGCACHE false, CACHESIZE 65536, VERBOSE 1, EARLYDROP true)
--> upsplit :: CTXDispatcher(9/06, -);
+-> switch;
 
-upsplit[0]
--> up;
-
-upsplit[1]
--> rrs;
-
-up -> rrs;
-up[1] -> loc_nic;
-down -> loc_nic;
-down[1] -> rrs;
-
-rrs[0]
+switch[0]
 -> UDPIPEncap(SatSrc0:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> sat_nic0;
 
-rrs[1]
+switch[1]
 -> UDPIPEncap(SatSrc1:ip, CltGWPort, SrvGW:ip, SrvGWMain, CHECKSUM true)
 -> sat_nic1;
