@@ -12,8 +12,10 @@ AddressInfo(
     arploc $arpLoc
 )
 PortInfo(
-    BrProve $BrProve,
-    BrMain $BrMain
+    BrProve  $BrProve,
+    BrMain   $BrMain,
+    SrvPort0 $SrvPort0,
+    SrvPort1 $SrvPort1
 )
 
 elementclass LocalNIC {$host, $hostnic, $arpnet|
@@ -44,10 +46,24 @@ br_nic :: GlobalNIC(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
 
 br_nic
--> Queue()
-//-> BandwidthRatedUnqueue(LINK_RATE 30M)
--> BandwidthRatedUnqueue(RATE 20000000Bps)
+-> CheckIPHeader()
+-> ipc :: IPClassifier(
+    dst tcp port SrvPort0,
+    dst tcp port SrvPort1,
+    -
+);
+
+ipc[0]
+-> Queue
+-> BandwidthRatedUnqueue(RATE 20000000Bps, BURST 1)
+-> GetIPAddress(16)
 -> srv_nic;
+
+ipc[1]
+-> GetIPAddress(16)
+-> srv_nic;
+
+ipc[2] -> Discard;
 
 srv_nic
 -> br_nic;

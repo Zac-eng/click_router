@@ -2,11 +2,13 @@ define(
     $CltGWPort 30000,
     $SrvGWProbe 20000,
     $SrvGWMain 20001,
-    $SatNIC0 wlp3s0,
-    $satgw0  10.18.254.254,
+    $SrvPort0 5201,
+    $SrvPort1 5202,
+    $SatNIC0 enp1s0,
+    $satgw0  192.168.1.1,
     $SatNIC1 enp2s0,
-    $satgw1  10.11.254.254,
-    $srvgw  13.231.243.217,
+    $satgw1  192.168.1.1,
+    $srvgw  43.207.174.2,
     $LocNIC ethClient,
     $arpLoc 192.168.4.0/24
 )
@@ -24,7 +26,9 @@ AddressInfo(
 PortInfo(
     CltGWPort  $CltGWPort,
     SrvGWProbe $SrvGWProbe,
-    SrvGWMain  $SrvGWMain
+    SrvGWMain  $SrvGWMain,
+    SrvPort0   $SrvPort0,
+    SrvPort1   $SrvPort1
 )
 
 elementclass LocalNIC {$host, $hostnic, $arpnet|
@@ -63,7 +67,20 @@ sat_nic1
 
 sat1_cl[1]->Discard;
 
-switch :: StrideSwitch(1, 1);
+switch :: {
+    input[0]
+    -> CheckIPHeader()
+    -> ipc :: IPClassifier(
+        dst tcp port SrvPort0,
+        dst tcp port SrvPort1,
+        -
+    )
+
+    ipc[0] -> [0]output;
+    ipc[1] -> [1]output;
+    ipc[2] -> Discard;
+};
+
 //switch :: {
 //    input[0] -> [0]output;
 //    Idle -> [1]output;
