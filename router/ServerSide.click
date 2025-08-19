@@ -35,8 +35,11 @@ srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
 
 br_nic
 -> Strip(14)
+-> ipc_br :: IPClassifier( dst udp port BrMain, -)
 -> annotator :: IPPortAnnotator
 -> iprr :: IPRRSwitch();
+
+ipc_br[1] -> Discard;
 
 iprr[0] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 1000) -> Queue -> rrsched :: RoundRobinSched();
 iprr[1] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 1000) -> Queue -> [1]rrsched;
