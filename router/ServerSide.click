@@ -3,6 +3,8 @@ define(
     $BrMain 20001,
     $BrNIC  eth0,
     $SrvNIC ethServer,
+    $SrvPort0 5201,
+    $SrvPort1 5202,
     $arpLoc 192.168.4.0/24
 )
 
@@ -56,7 +58,7 @@ br_nic
 
 ipc[0]
 -> Queue
--> BandwidthRatedUnqueue(RATE 20000000Bps, BURST 1)
+-> BandwidthRatedUnqueue(RATE 2000000Bps, BURST 1)
 -> GetIPAddress(16)
 -> srv_nic;
 
