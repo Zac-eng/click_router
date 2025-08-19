@@ -34,7 +34,8 @@ elementclass GlobalNIC {$host, $hostnic, $arpnet, $gwip|
     -> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
     -> SetIPAddress($gwip)
     -> LocalNIC($host, $hostnic, $arpnet)
-    -> ipc_br :: Classifier(9/11 22/4E21, -)[0]
+    -> ipc_br :: Classifier(9/11 22/4E21, -)
+    -> CheckIPHeader()
     -> [0]annotator[0]
     -> Strip(28)
     -> [0]output;
