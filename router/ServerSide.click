@@ -1,4 +1,4 @@
-define(    
+define(
     $BrProve 20000,
     $BrMain 20001,
     $BrNIC  eth0,
@@ -23,7 +23,7 @@ elementclass LocalNIC {$host, $hostnic, $arpnet|
     c[2] -> [0]output;
     c[3] -> Discard;
     input[0] -> aq;
-    aq[1] -> q;    
+    aq[1] -> q;
 }
 
 elementclass GlobalNIC {$host, $hostnic, $arpnet, $gwip|
@@ -38,12 +38,12 @@ br_nic
 -> annotator :: IPPortAnnotator
 -> iprr :: IPRRSwitch();
 
-iprr[0] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps) -> Queue -> rrq :: RoundRobinUnqueue();
-iprr[1] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps) -> Queue -> [1]rrq;
+iprr[0] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 1000) -> Queue -> rrsched :: RoundRobinSched();
+iprr[1] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 1000) -> Queue -> [1]rrsched;
 
-rrq -> GetIPAddress(16) -> srv_nic;
+rrsched -> Unqueue -> GetIPAddress(16) -> srv_nic;
 
 srv_nic
 -> [1]annotator[1]
--> UDPIPEncapAnno($host:ip, BrMain ,CHECKSUM true)
+-> UDPIPEncapAnno(BrNIC:ip, BrMain ,CHECKSUM true)
 -> br_nic;
