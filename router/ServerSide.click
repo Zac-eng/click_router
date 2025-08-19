@@ -36,17 +36,19 @@ srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
 br_nic
 -> Strip(14)
 -> ipc_br :: Classifier(9/11 22/4E21, -)
+-> CheckIPHeader()
 -> annotator :: IPPortAnnotator
 -> iprr :: IPRRSwitch();
 
 ipc_br[1] -> Discard;
 
-iprr[0] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 1000) -> Queue -> rrsched :: RoundRobinSched();
-iprr[1] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 1000) -> Queue -> [1]rrsched;
+iprr[0] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 0) -> Queue -> rrsched :: RoundRobinSched();
+iprr[1] -> Strip(28) -> Queue -> BandwidthRatedUnqueue(RATE 20Mbps, BURST 0) -> Queue -> [1]rrsched;
 
 rrsched -> Unqueue -> GetIPAddress(16) -> srv_nic;
 
 srv_nic
+-> Strip(14)
 -> [1]annotator[1]
 -> UDPIPEncapAnno(BrNIC:ip, BrMain ,CHECKSUM true)
 -> br_nic;

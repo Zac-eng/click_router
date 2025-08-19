@@ -57,12 +57,16 @@ rrs[1]
 
 sat_nic0
 -> Strip(14)
+-> cl0 :: Classifier(9/11 22/7530, -)
 -> Strip(28)
 -> GetIPAddress(16)
 -> loc_nic;
+cl0[1] -> Discard;
 
 sat_nic1
 -> Strip(14)
+-> cl1 :: Classifier(9/11 22/7530, -)
 -> Strip(28)
 -> GetIPAddress(16)
 -> loc_nic;
+cl1[1] -> Discard;
