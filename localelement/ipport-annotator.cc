@@ -13,10 +13,10 @@ void IPPortAnnotator::push_batch(int port, PacketBatch *batch) {
     if (_stored_info.ip == 0) {
       FOR_EACH_PACKET(batch, p) {
         const click_ip *iph = p->ip_header();
-        if (!iph) continue;
+        if (!iph) {click_chatter("non ip packet to annotator"); continue;}
         if (iph->ip_p != IP_PROTO_UDP) continue;
         const click_udp *udph = reinterpret_cast<const click_udp *>(p->transport_header());
-        if (!udph) continue;
+        if (!udph) {click_chatter("non udp packet to annotator"); continue;}
         _stored_info.ip = iph->ip_src.s_addr;
         _stored_info.port = ntohs(udph->uh_sport);
         click_chatter("Stored src IP: %x, port: %u", _stored_info.ip, _stored_info.port);

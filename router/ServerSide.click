@@ -35,7 +35,7 @@ srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
 
 br_nic
 -> Strip(14)
--> ipc_br :: IPClassifier( dst udp port BrMain, -)
+-> ipc_br :: Classifier(9/11 22/4E21, -)
 -> annotator :: IPPortAnnotator
 -> iprr :: IPRRSwitch();
 
