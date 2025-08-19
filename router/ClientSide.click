@@ -71,8 +71,10 @@ switch :: {
     input[0]
     -> CheckIPHeader()
     -> ipc :: IPClassifier(
-        dst tcp port SrvPort0,
-        dst tcp port SrvPort1,
+        dst tcp port SrvPort0 0,
+        dst udp port SrvPort0 0,
+        dst tcp port SrvPort1 1,
+        dst udp port SrvPort1 1,
         -
     )
 
