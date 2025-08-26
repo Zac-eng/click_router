@@ -36,11 +36,15 @@ loc_nic
 
 rrs[0]
 -> IPEncap(32, Src0:ip, gw0)
+-> Queue()
+-> BandwidthRatedUnqueue(10000000Bps, BURST 1)
 -> GetIPAddress(16)
 -> nic0;
 
 rrs[1]
 -> IPEncap(32, Src0:ip, gw0)
+-> Queue()
+-> BandwidthRatedUnqueue(10000000Bps, BURST 1)
 -> GetIPAddress(16)
 -> nic1;
 
@@ -49,12 +53,16 @@ nic0
 -> CheckIPHeader()
 -> StripIPHeader()
 -> Queue()
+-> BandwidthRatedUnqueue(10000000Bps, BURST 1)
+-> Queue()
 -> rrsched :: RoundRobinSched();
 
 nic1
 -> Strip(14)
 -> CheckIPHeader()
 -> StripIPHeader()
+-> Queue()
+-> BandwidthRatedUnqueue(10000000Bps, BURST 1)
 -> Queue()
 -> [1]rrsched;
 
