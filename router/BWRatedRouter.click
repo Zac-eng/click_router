@@ -4,7 +4,12 @@ define(
   $NIC1 enp2s0,
   $gw1  192.168.11.5,
   $LocNIC ethClient,
-  $arpLoc 192.168.4.0/24
+//  $NIC0 eth0,
+//  $gw0  10.0.3.3,
+//  $NIC1 enxc8a3625a4ed9,
+//  $gw1  192.168.11.4,
+  $arpLoc 192.168.4.0/24,
+  $BandWidth 50000000Bps
 )
 
 AddressInfo(
@@ -16,14 +21,18 @@ AddressInfo(
   arploc $arpLoc
 )
 
+PortInfo(
+  FixedPort 20001
+)
+
 elementclass LocalNIC {$host, $hostnic, $arpnet|
-    FromDevice($hostnic) -> c:: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800, -);
-    c[0] -> ARPResponder($arpnet $host:eth) -> q:: Queue -> ToDevice($hostnic);
-    c[1] -> [1]aq:: ARPQuerier($host:ip, $host:eth) -> q;
-    c[2] -> [0]output;
-    c[3] -> Discard;
-    input[0] -> aq;
-    aq[1] -> q;
+  FromDevice($hostnic) -> c:: Classifier(12/0806 20/0001, 12/0806 20/0002, 12/0800, -);
+  c[0] -> ARPResponder($arpnet $host:eth) -> q:: Queue -> ToDevice($hostnic);
+  c[1] -> [1]aq:: ARPQuerier($host:ip, $host:eth) -> q;
+  c[2] -> [0]output;
+  c[3] -> Discard;
+  input[0] -> aq;
+  aq[1] -> q;
 }
 
 nic0 :: LocalNIC(Src0, $NIC0, Src0:ip);
@@ -32,37 +41,35 @@ loc_nic :: LocalNIC(LocNIC, $LocNIC, arploc);
 
 loc_nic
 -> Strip(14)
--> rrs :: RoundRobinSwitch();
+-> switch :: RoundRobinSwitch;
 
-rrs[0]
--> IPEncap(32, Src0:ip, gw0)
+switch[0]
+-> UDPIPEncap(Src0:ip, FixedPort, gw0, FixedPort, CHECKSUM true)
 -> Queue()
--> BandwidthRatedUnqueue(10000000Bps, BURST 1)
+-> BandwidthRatedUnqueue($BandWidth, BURST 1)
 -> GetIPAddress(16)
 -> nic0;
 
-rrs[1]
--> IPEncap(32, Src0:ip, gw0)
+switch[1]
+-> UDPIPEncap(Src0:ip, FixedPort, gw0, FixedPort, CHECKSUM true)
 -> Queue()
--> BandwidthRatedUnqueue(10000000Bps, BURST 1)
+-> BandwidthRatedUnqueue($BandWidth, BURST 1)
 -> GetIPAddress(16)
 -> nic1;
 
 nic0
 -> Strip(14)
--> CheckIPHeader()
--> StripIPHeader()
+-> Strip(28)
 -> Queue()
--> BandwidthRatedUnqueue(10000000Bps, BURST 1)
+-> BandwidthRatedUnqueue($BandWidth, BURST 1)
 -> Queue()
 -> rrsched :: RoundRobinSched();
 
 nic1
 -> Strip(14)
--> CheckIPHeader()
--> StripIPHeader()
+-> Strip(28)
 -> Queue()
--> BandwidthRatedUnqueue(10000000Bps, BURST 1)
+-> BandwidthRatedUnqueue($BandWidth, BURST 1)
 -> Queue()
 -> [1]rrsched;
 
