@@ -1,10 +1,10 @@
 // -*- mode: c++; c-basic-offset: 4 -*-
 #ifndef CLICK_INSERT_DSN_HH
 #define CLICK_INSERT_DSN_HH
-#include <click/element.hh>
+#include <click/batchelement.hh>
 CLICK_DECLS
 
-class InsertDSN : public Element { public:
+class InsertDSN : public SimpleElement<InsertDSN> { public:
 
     InsertDSN() CLICK_COLD;
     ~InsertDSN() CLICK_COLD;

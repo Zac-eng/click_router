@@ -1,88 +1,122 @@
 #include <click/config.h>
 #include <click/error.hh>
-#include <click/args.hh>
 #include "dataseqsched.hh"
+#include <click/standard/scheduleinfo.hh>
+#include <click/args.hh>
+#include <click/router.hh>
+#include <click/heap.hh>
 CLICK_DECLS
 
 DataSeqSched::DataSeqSched()
-    : _next(0), _signals(0), _max(0)
+    : _pkt(0), _npkt(0), _input(0), _nready(0),
+      _notifier(Notifier::SEARCH_CONTINUE_WAKE),
+      _buffer(10), _last_dsn(0), _timeout(false)
 {
 }
 
-int DataSeqSched::configure(Vector<String> &conf, ErrorHandler *errh)
+DataSeqSched::~DataSeqSched()
 {
-    _max = ninputs();
-    // if (Args(conf, this, errh)
-    //     .read_p("LENGTH", _len)
-    //     .complete() < 0)
-    //     return -1;
+}
+
+void *
+DataSeqSched::cast(const char *n)
+{
+    if (strcmp(n, Notifier::EMPTY_NOTIFIER) == 0)
+	    return &_notifier;
+    else
+    	return Element::cast(n);
+}
+
+int
+DataSeqSched::configure(Vector<String> &conf, ErrorHandler *errh)
+{
+    _notifier.initialize(Notifier::EMPTY_NOTIFIER, router());
+    _stop = false;
+    if (Args(conf, this, errh)
+	    .read("BUFFER", _buffer)
+	    .complete() < 0)
+	    return -1;
+    if (_buffer <= 0)
+	    return errh->error("BUFFER must be at least 1");
     return 0;
 }
 
 int
 DataSeqSched::initialize(ErrorHandler *errh)
 {
-    if (!(_signals = new NotifierSignal[ninputs()]))
-        return errh->error("out of memory!");
+    _pkt = new packet_s[ninputs() * _buffer];
+    _input = new input_s[ninputs()];
+    if (!_pkt || !_input)
+	    return errh->error("out of memory!");
     for (int i = 0; i < ninputs(); i++) {
-        _signals[i] = Notifier::upstream_empty_signal(this, i);
+	    _input[i].signal = Notifier::upstream_empty_signal(this, i, &_notifier);
+	    _input[i].space = _buffer;
+	    _input[i].ready = i;
     }
-    _timer.initialize((Element*)this);
-    _timer.schedule_after_msec(1000);
-    click_chatter("init complete");
+    _nready = ninputs();
+    _timer.initialize(this);
+    _timer.schedule_after_msec(10000);
     return 0;
-}
-
-void
-DataSeqSched::run_timer(Timer* t)
-{
-    t->reschedule_after_msec(1000);
-    if (!_queue.empty()) {
-        auto next_packet = _queue.top;
-        _next = next_packet->first;
-        _queue.pop();
-        return next_packet->second;
-    }
 }
 
 void
 DataSeqSched::cleanup(CleanupStage)
 {
-    delete[] _signals;
+    for (int i = 0; i < _npkt; ++i)
+	    _pkt[i].p->kill();
+    delete[] _pkt;
+    delete[] _input;
 }
 
-Packet *
+Packet*
 DataSeqSched::pull(int)
 {
-    for (int j = 0; j < _max; j++) {
-        if (!_head_packets[j] && _signals[j]) {
-            Packet *p = input(j).pull();
-            if (!p) {
-                click_chatter("pulling failed, %d",j);
-                continue;
+    bool signals_on = false;
+    // first maybe fill in buffer
+    for (int rpos = _nready - 1; rpos >= 0; --rpos) {
+        int i = _input[rpos].ready;
+        input_s &is = _input[i];
+        if (is.signal) {
+            signals_on = true;
+            while ((_pkt[_npkt].p = input(i).pull())) {
+                memcpy(&_pkt[_npkt].dsn, _pkt[_npkt].p->data(), 8);
+                _pkt[_npkt].input = i;
+                ++_npkt;
+                push_heap(_pkt, _pkt + _npkt, heap_less());
+                --is.space;
+                if (!is.space) {
+                    _input[rpos].ready = _input[_nready - 1].ready;
+                    --_nready;
+                    break;
+                }
             }
-            click_chatter("pulled %d", j);
-            const click_tcp* tcph = p->tcp_header();
-            if (tcph == NULL) {
-                click_chatter("non tcp packet, %x", (p = p->ip_header()?p:0));
-                continue;
-            }
-            click_chatter("tcp header");
-            tcp_seq_t seq = tcph->th_seq;
-            _seq_port_map.insert(seq, j);
-            _head_packets[j] = p->uniqueify();
-            // p->kill();
         }
     }
-    if (_seq_port_map.empty())
-        return 0;
-    HashMap<tcp_seq_t, int>::iterator smallest = _seq_port_map.begin();
-    Packet *next_packet = _head_packets[smallest.value()];
-    _head_packets[smallest.value()] = NULL;
-    _seq_port_map.erase(smallest.key());
-    return next_packet;
-}
 
+    // then maybe emit a packet
+    _notifier.set_active(_npkt > 0 || signals_on);
+    if (_npkt <= 0)
+        return 0;
+    if (!_timeout && _pkt[0].dsn > _last_dsn + 1)
+        return 0;
+    if (_timeout || _pkt[0].dsn == _last_dsn + 1) {
+        if (_timeout)
+            printf("timeout\n");
+        _last_dsn = _pkt[0].dsn;
+    }
+    _timeout = false;
+    _timer.reschedule_after_msec(1000);
+    Packet *p = _pkt[0].p;
+    input_s &is = _input[_pkt[0].input];
+    ++is.space;
+    if (is.space == 1) {
+        _input[_nready].ready = _pkt[0].input;
+        ++_nready;
+    }
+    pop_heap(_pkt, _pkt + _npkt, heap_less());
+    --_npkt;
+    return p;
+}
 
 #if HAVE_BATCH
 PacketBatch *
@@ -92,6 +126,19 @@ DataSeqSched::pull_batch(int port, unsigned max) {
     return batch;
 }
 #endif
+
+void
+DataSeqSched::run_timer(Timer *t)
+{
+    _timeout = true;
+    t->reschedule_after_msec(1000);
+}
+
+void
+DataSeqSched::add_handlers()
+{
+    // add_data_handlers("well_ordered", Handler::f_read | Handler::f_checkbox, &_well_ordered);
+}
 
 CLICK_ENDDECLS
 EXPORT_ELEMENT(DataSeqSched)

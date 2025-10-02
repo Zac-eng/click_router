@@ -1,46 +1,64 @@
-// -*- c-basic-offset: 4 -*-
-#ifndef CLICK_DATA_SEQ_SCHED_HH
-#define CLICK_DATA_SEQ_SCHED_HH
+#ifndef DATA_SEQ_SCHED_HH
+#define DATA_SEQ_SCHED_HH
 #include <click/batchelement.hh>
 #include <click/notifier.hh>
-#include <click/packet.hh>
 #include <click/timer.hh>
-#include <queue>
 CLICK_DECLS
 
-class DataSeqSched : public BatchElement {
-  public:
-      DataSeqSched() CLICK_COLD;
+class DataSeqSched : public BatchElement { public:
 
-      const char *class_name() const override  { return "DataSeqSched"; }
-      const char *port_count() const override  { return "-/1"; }
-      const char *processing() const override  { return PULL; }
-      const char *flags() const       { return "S0"; }
+    DataSeqSched() CLICK_COLD;
+    ~DataSeqSched() CLICK_COLD;
 
-      int configure(Vector<String> &conf, ErrorHandler *) CLICK_COLD;
-      int initialize(ErrorHandler *) CLICK_COLD;
-      void run_timer(Timer *t) override;
-      void cleanup(CleanupStage) CLICK_COLD;
+    const char *class_name() const override	{ return "DataSeqSched"; }
+    const char *port_count() const override	{ return "-/1"; }
+    const char *processing() const override	{ return PULL; }
+    const char *flags() const		{ return "S0"; }
+    void *cast(const char *);
 
-      Packet *pull(int port);
+    int configure(Vector<String> &conf, ErrorHandler *errh) CLICK_COLD;
+    int initialize(ErrorHandler *errh) CLICK_COLD;
+    void cleanup(CleanupStage stage) CLICK_COLD;
+    void add_handlers() CLICK_COLD;
+    void run_timer(Timer *t);
+
+    Packet *pull(int);
   #if HAVE_BATCH
-      PacketBatch *pull_batch(int port, unsigned max);
+    PacketBatch *pull_batch(int port, unsigned max);
   #endif
 
-  protected:
-      uint64_t _next;
-      NotifierSignal *_signals;
-      Timer _timer;
-      struct Compare {
-        bool operator() (
-          const std::pair<uint64_t, Packet*> &a,
-          const std::pair<uint64_t, Packet*> &b) {
-            return a.first > b.first;
-          }
-      };
-      std::priority_queue<std::pair<uint64_t, Packet*>,
-        std::vector<std::pair<uint64_t, Packet*>>,
-        Compare> _queue;
+  private:
+
+    struct packet_s {
+	    uint64_t dsn;
+      int input;
+	    Packet *p;
+    };
+    struct heap_less {
+	    inline bool operator()(packet_s &a, packet_s &b) {
+	      return a.dsn < b.dsn;
+	    }
+    };
+    struct input_s {
+	    NotifierSignal signal;
+	    int space;
+	    int ready;
+    };
+
+    packet_s *_pkt;
+    int _npkt;
+
+    input_s *_input;
+    int _nready;
+
+    Notifier _notifier;
+    int _buffer;
+    uint64_t _last_dsn;
+    bool _stop;
+    // bool _well_ordered;
+
+    Timer _timer;
+    bool _timeout;
 
 };
 

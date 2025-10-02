@@ -6,7 +6,7 @@
 CLICK_DECLS
 
 InsertDSN::InsertDSN()
-  : _next(1)
+  : _next(0)
 {
 }
 
