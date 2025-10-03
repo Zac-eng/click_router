@@ -55,7 +55,5 @@ br_nic
 -> GetIPAddress(16)
 -> srv_nic;
 
-brc[1] -> Discard;
-
 srv_nic
 -> br_nic;
