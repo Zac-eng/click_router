@@ -1,6 +1,6 @@
 define(
-  $NIC0 enp1s0,
-  $gw0  192.168.11.1,
+  $NIC0 wlp3s0,
+  $gw0  10.100.0.1,
   $NIC1 enp2s0,
   $gw1  10.0.0.1,
   $LocNIC ethClient,
