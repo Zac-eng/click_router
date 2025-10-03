@@ -48,12 +48,15 @@ br_nic :: GlobalNIC(BrNIC, $BrNIC, BrNIC:ip, 172.31.32.1);
 srv_nic :: LocalNIC(SrvNIC, $SrvNIC, arploc);
 
 br_nic
+-> brc :: Classifier(9/11 22/4e21, -)
 -> Queue(4096)
--> sched :: DataSeqSched(BUFFER 1000);
+-> sched :: DataSeqSched(BUFFER 1000)
 -> Unqueue()
 -> Strip(8)
 -> GetIPAddress(16)
 -> srv_nic;
+
+brc[1] -> Discard;
 
 srv_nic
 -> br_nic;

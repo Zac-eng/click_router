@@ -131,6 +131,7 @@ void
 DataSeqSched::run_timer(Timer *t)
 {
     _timeout = true;
+    _notifier.set_active(true);
     t->reschedule_after_msec(1000);
 }
 
