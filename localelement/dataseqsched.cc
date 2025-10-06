@@ -7,6 +7,8 @@
 #include <click/heap.hh>
 CLICK_DECLS
 
+#define TIMEOUT_MS
+
 DataSeqSched::DataSeqSched()
     : _pkt(0), _npkt(0), _input(0), _nready(0),
       _notifier(Notifier::SEARCH_CONTINUE_WAKE),
@@ -105,7 +107,7 @@ DataSeqSched::pull(int)
         _last_dsn = _pkt[0].dsn;
     }
     _timeout = false;
-    _timer.reschedule_after_msec(1000);
+    _timer.reschedule_after_msec(TIMEOUT_MS);
     Packet *p = _pkt[0].p;
     input_s &is = _input[_pkt[0].input];
     ++is.space;
@@ -132,7 +134,7 @@ DataSeqSched::run_timer(Timer *t)
 {
     _timeout = true;
     _notifier.set_active(true);
-    t->reschedule_after_msec(1000);
+    t->reschedule_after_msec(TIMEOUT_MS);
 }
 
 void
