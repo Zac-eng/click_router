@@ -58,6 +58,7 @@ DataSeqSched::initialize(ErrorHandler *errh)
     _nready = ninputs();
     _timer.initialize(this);
     _timer.schedule_after_msec(10000);
+    printf("npkt,dsn,last,timestamp");
     return 0;
 }
 
@@ -84,7 +85,7 @@ DataSeqSched::pull(int)
                 memcpy(&_pkt[_npkt].dsn, _pkt[_npkt].p->data(), 8);
                 _pkt[_npkt].input = i;
                 ++_npkt;
-                printf("npkt: %d, dsn: %ld, last: %ld, %s\n", _npkt, _pkt[_npkt-1].dsn, _last_dsn, (Timestamp::now() - _first_arrival).unparse().c_str());
+                printf("%d,%ld,%ld,%s\n", _npkt, _pkt[_npkt-1].dsn, _last_dsn, (Timestamp::now() - _first_arrival).unparse().c_str());
                 push_heap(_pkt, _pkt + _npkt, heap_less());
                 --is.space;
                 if (!is.space) {
@@ -103,8 +104,8 @@ DataSeqSched::pull(int)
     if (!_timeout && _pkt[0].dsn != 0 && _pkt[0].dsn > _last_dsn + 1)
         return 0;
     if (_timeout || _pkt[0].dsn == 0 || _pkt[0].dsn == _last_dsn + 1) {
-        if (_timeout)
-            printf("timeout\n");
+        // if (_timeout)
+        //     printf("timeout\n");
         if (_pkt[0].dsn == 0)
             this->_first_arrival = Timestamp::now();
         _last_dsn = _pkt[0].dsn;
