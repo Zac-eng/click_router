@@ -3,6 +3,9 @@
 #include <click/batchelement.hh>
 #include <click/notifier.hh>
 #include <click/timer.hh>
+// only for timestamp
+#include <click/timestamp.hh>
+
 CLICK_DECLS
 
 class DataSeqSched : public BatchElement { public:
@@ -59,7 +62,9 @@ class DataSeqSched : public BatchElement { public:
 
     Timer _timer;
     bool _timeout;
-
+    
+    // this is required only when you want to print timestamp
+    Timestamp _first_arrival;
 };
 
 CLICK_ENDDECLS
