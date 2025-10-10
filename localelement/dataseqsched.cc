@@ -58,7 +58,7 @@ DataSeqSched::initialize(ErrorHandler *errh)
     _nready = ninputs();
     _timer.initialize(this);
     _timer.schedule_after_msec(10000);
-    printf("npkt,dsn,last,timestamp");
+    printf("npkt,dsn,last,timestamp\n");
     return 0;
 }
 
