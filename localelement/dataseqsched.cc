@@ -84,7 +84,7 @@ DataSeqSched::pull(int)
                 memcpy(&_pkt[_npkt].dsn, _pkt[_npkt].p->data(), 8);
                 _pkt[_npkt].input = i;
                 ++_npkt;
-                // printf("npkt: %d, dsn: %ld, last: %ld\n", _npkt, _pkt[_npkt-1].dsn, _last_dsn);
+                printf("npkt: %d, dsn: %ld, last: %ld\n", _npkt, _pkt[_npkt-1].dsn, _last_dsn);
                 push_heap(_pkt, _pkt + _npkt, heap_less());
                 --is.space;
                 if (!is.space) {
@@ -100,11 +100,11 @@ DataSeqSched::pull(int)
     _notifier.set_active(_npkt > 0 || signals_on);
     if (_npkt <= 0)
         return 0;
-    if (!_timeout && _pkt[0].dsn > _last_dsn + 1)
+    if (!_timeout && _pkt[0].dsn != 0 && _pkt[0].dsn > _last_dsn + 1)
         return 0;
-    if (_timeout || _pkt[0].dsn == _last_dsn + 1) {
+    if (_timeout || _pkt[0].dsn == 0 || _pkt[0].dsn == _last_dsn + 1) {
         if (_timeout)
-            // printf("timeout\n");
+            printf("timeout\n");
         _last_dsn = _pkt[0].dsn;
     }
     _timeout = false;
